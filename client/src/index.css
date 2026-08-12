@@ -370,3 +370,35 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 .setup-estimate .summary-main .figure { font-size:40px; }
 @media (max-width:800px) { .setup-row { grid-template-columns:1fr; gap:12px; padding-block:18px; } .setup-field { justify-content:flex-start; } }
 
+/* Stats. Cards reuse the glass treatment of .summary-rail; the bars reuse the
+   hairline track and accent fill of .progress-track so the page reads as one
+   system rather than a chart library dropped in. */
+.stats-grid { margin-top:20px; display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:14px; }
+.stats-card { background:var(--surface-base); box-shadow:0 0 0 1px var(--rule); border-radius:var(--radius); padding:20px 22px 22px; display:flex; flex-direction:column; gap:14px; }
+.site-shell.night .stats-card { background:var(--surface-chip); box-shadow:0 0 0 1px var(--rule); }
+
+.stats-bars { display:flex; flex-direction:column; gap:13px; }
+.stats-bar-row { display:grid; grid-template-columns:74px 1fr auto; align-items:center; gap:14px; }
+.stats-bar-name { white-space:nowrap; }
+.stats-bar-track { height:3px; background:var(--rule); display:block; }
+/* A backlog of several thousand makes a proportional fill sub-pixel — at 4 of
+   3834 the bar renders as nothing and reads as broken. A floor of 3px says
+   "something has been done" while the figure beside it carries the real
+   number, so nothing is overstated. */
+.stats-bar-fill { display:block; height:100%; min-width:3px; background:var(--accent); transition:width var(--dur-mid) var(--ease-out); }
+.stats-bar-fill[data-empty="true"] { min-width:0; }
+.stats-bar-value { font-size:15px; white-space:nowrap; }
+.stats-bar-value small { font-size:.72em; opacity:.66; }
+
+.stats-chart { width:100%; height:96px; display:block; overflow:visible; }
+.stats-col { fill:var(--rule); }
+.stats-col.is-on { fill:var(--accent); }
+.stats-axis { stroke:var(--rule); stroke-width:1; vector-effect:non-scaling-stroke; }
+.stats-empty { max-width:34ch; }
+
+.stats-figures { display:flex; flex-direction:column; gap:16px; }
+.stats-figures .figure { font-size:26px; display:block; }
+.stats-figures .caption { display:block; margin-top:3px; }
+
+@media (max-width:980px) { .stats-grid { grid-template-columns:1fr; } }
+
