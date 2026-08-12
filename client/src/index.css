@@ -354,3 +354,19 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
    neither may take pointer events. Re-enable only if something inside them
    ever becomes clickable. */
 #hero-visual, .gradient-visual, .stat-stack, .day-arc, .gradient-orbit, .solar-system, .gradient-caption { pointer-events:none; }
+
+/* Setup: profile entry rows. Same ruled rhythm as .prayer-row, but two
+   columns (question / control) since there is no Arabic name or progress bar. */
+.setup-row { min-height:88px; display:grid; grid-template-columns:1fr 280px; align-items:center; gap:28px; border-bottom:1px solid var(--rule); padding-inline:22px; }
+.setup-row:last-child { border-bottom:0; }
+.setup-row h3 { font-size:16px; font-weight:600; margin:0 0 6px; }
+.setup-row .caption { display:block; max-width:52ch; }
+.setup-field { display:flex; align-items:center; justify-content:end; gap:10px; flex-wrap:wrap; }
+.setup-date { width:auto; min-width:170px; text-align:left; font-size:15px; }
+.setup-issues { padding:14px 22px 0; }
+.setup-issues .caption { color:var(--accent); }
+.setup-estimate { margin-top:18px; }
+.setup-estimate .figure { font-size:30px; }
+.setup-estimate .summary-main .figure { font-size:40px; }
+@media (max-width:800px) { .setup-row { grid-template-columns:1fr; gap:12px; padding-block:18px; } .setup-field { justify-content:flex-start; } }
+
