@@ -39,6 +39,33 @@ Read, update and delete are deliberately not granted at the table level. `putSta
 `Permission.read/update/delete(Role.user(id))` when it upserts, so a row names its own
 reader and nobody else — including other signed-in accounts — can read it.
 
+### The suggestions table
+
+The "Takliflar uchun" form at the foot of the page writes to a second table, `suggestions`,
+in the same database.
+
+| Column | Type |
+| --- | --- |
+| `message` | Text |
+| `contact` | Text — the sender's own address, optional |
+
+**Permissions: role `Users` has Create, and nothing else. Row security is off.** That
+combination is the whole design, so do not "fix" it by granting Read:
+
+- Nobody can read the table from a browser — not even the person who wrote the row. It is a
+  posting box, not a thread.
+- The owner's email address is **not in the app**. A static build has nowhere to keep a
+  secret, so any address handed to `mailto:` would sit in the JavaScript anyone can view.
+  Writing to a closed table is what keeps it out of the bundle, the repository and the DOM.
+
+**Suggestions do not arrive by email.** Read them in the console under
+Databases → QazoTrack → Suggestions. To have them forwarded instead, an Appwrite Function
+can hold the address server-side and send it on; that keeps the address out of the frontend
+for the same reason, and needs an SMTP provider configured.
+
+Sending requires a session, because `Users` rather than `Any` holds the Create permission —
+an open write endpoint would be spammable by anyone who found the project ID.
+
 ## Environment
 
 Both variables are public. They are compiled into the JavaScript the browser downloads and
