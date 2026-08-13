@@ -222,6 +222,9 @@ function vitePluginStorageProxy(): Plugin {
 const plugins = [react(), tailwindcss(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
 
 export default defineConfig({
+  // The footer credit shows the year the build was made. Stamping it here keeps
+  // it honest without shipping a clock read on every render.
+  define: { __BUILD_YEAR__: JSON.stringify(String(new Date().getFullYear())) },
   plugins,
   resolve: {
     alias: {
