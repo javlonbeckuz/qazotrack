@@ -112,6 +112,16 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 
 /* Time-aware hero: the sun follows the local day cycle and the scene settles at night. */
 .gradient-visual { isolation:isolate; }
+
+/* The orrery's canvas. It sits under the sun-status card and the day arc, and
+   keeps the soft radial wash the CSS orbits used to provide so the hero does
+   not go flat behind it. */
+.solar-scene {
+  position:absolute; inset:0; display:grid; place-items:center;
+  background:radial-gradient(circle at 50% 46%, rgba(61,90,153,.20), rgba(61,90,153,.10) 32%, transparent 66%);
+}
+.solar-scene canvas { display:block; width:100%; height:100%; }
+.site-shell.night .solar-scene { background:radial-gradient(circle at 50% 46%, rgba(83,116,177,.34), rgba(45,66,111,.20) 34%, transparent 70%); }
 .day-arc { position:absolute; inset:16% 12% 20%; border:1px solid rgba(27,41,81,.18); border-bottom-color:transparent; border-left-color:transparent; border-radius:50%; transform:rotate(-22deg); pointer-events:none; }
 .sun-marker { position:absolute; left:calc(9% + (var(--sun-progress) * 82%)); top:calc(68% - (var(--sun-progress) * 45%)); width:17px; height:17px; border-radius:50%; background:#d4af37; box-shadow:0 0 0 8px rgba(212,175,55,.16),0 0 28px rgba(212,175,55,.45); transform:rotate(22deg); transition:left 900ms var(--ease-out),top 900ms var(--ease-out),background 520ms ease,box-shadow 520ms ease; }
 .sun-status { position:absolute; left:12%; bottom:74px; display:flex; flex-direction:column; gap:5px; color:var(--text-muted); z-index:2; }
