@@ -345,22 +345,10 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 .site-shell.night .step-button { box-shadow:inset 0 1px 0 rgba(197,218,255,.2),0 5px 16px rgba(0,0,0,.2); }
 
 /* Pixel number system: blocky tabular numerals keep the counters crisp and game-like without changing body typography. */
-.stat-stack .figure,
-.summary-rail .figure,
-.row-figure,
-.overview .figure,
-.overview-item .figure { font-family:"Courier New",ui-monospace,monospace; font-variant-numeric:tabular-nums; font-weight:800; letter-spacing:-.08em; text-shadow:1px 0 0 currentColor; }
-.stat-stack .figure { font-size:42px; line-height:.9; }
-.summary-rail .figure { font-size:38px; line-height:.9; }
-.row-figure { font-size:24px; min-width:2ch; text-align:center; }
-.overview .figure.huge { font-size:72px; }
-.overview-item .figure { font-size:28px; }
-.overview-item .figure small { font-size:.5em; letter-spacing:-.03em; }
-.site-shell.night .stat-stack .figure,
-.site-shell.night .summary-rail .figure,
-.site-shell.night .row-figure,
-.site-shell.night .overview .figure { text-shadow:1px 0 0 currentColor,0 0 16px rgba(156,182,228,.16); }
-@media (max-width:800px) { .stat-stack .figure { font-size:34px; } .summary-rail .figure { font-size:30px; } .overview .figure.huge { font-size:58px; } }
+/* The Courier figure block was removed here: it set font-family, weight and a
+   text-shadow on ancestor-qualified selectors, which outranked the newer
+   `.figure` rule and pulled the numbers back into the fallback sans. */
+
 
 /* ------------------------------------------------------ the numeric system */
 
@@ -664,3 +652,37 @@ html, body { overflow-x:hidden; }
 }
 /* The pixel-clock kicker is already uppercase by drawing; leave it alone. */
 .sun-kicker { text-transform:none; letter-spacing:.02em; }
+
+/* ------------------------------------------------------------- the meter */
+
+/* A single ratio against a limit. Not a ring: a two-slice donut asks the reader
+   to compare arc lengths for something a labelled track states outright. Ends
+   are direct-labelled so the value never lives only in a tooltip. */
+.meter { margin-top:20px; padding:20px 22px 22px; background:var(--surface-base); box-shadow:0 0 0 1px var(--rule); border-radius:var(--radius); }
+.meter-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; }
+.meter-head .caption { font-size:1.15rem; color:var(--text-ink); }
+.meter-of { color:var(--text-muted); font-size:.85em; }
+/* Thin mark, hairline track, no gradient — the length is the message. */
+.meter-track { height:6px; margin:14px 0 10px; background:var(--rule); border-radius:3px; overflow:hidden; }
+.meter-fill {
+  display:block; height:100%; min-width:2px; background:var(--accent); border-radius:3px;
+  /* Progress is time-like: it grows evenly rather than easing. */
+  transition:width var(--dur-slow) linear;
+}
+.meter-foot { display:flex; justify-content:space-between; gap:16px; }
+
+/* ------------------------------------------------- chart hover behaviour */
+
+.stats-col-group { cursor:default; }
+.stats-col { transition:fill var(--dur) ease; }
+.stats-col-group:hover .stats-col { fill:var(--accent); }
+.stats-col-group:hover .stats-col:not(.is-on) { fill:var(--rule-strong); }
+
+/* --------------------------------------------------------- figure detail */
+
+/* Equal-width digits make a large standalone number look gappy — "121" sits
+   loose. Tabular belongs where figures stack into a column and have to stay in
+   register: ledger rows, bar values, axis ticks. Headline figures go
+   proportional. */
+.figure { font-variant-numeric:lining-nums proportional-nums; }
+.row-figure,.stats-bar-value,.stats-bar-value small { font-variant-numeric:lining-nums tabular-nums; }

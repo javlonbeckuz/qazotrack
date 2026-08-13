@@ -10,6 +10,7 @@ import { FALLBACK_COORDINATES, currentPrayer, type Coordinates } from "@/lib/sol
  * appears a moment later over the wash that is already there.
  */
 const SolarScene = lazy(() => import("@/components/SolarScene"));
+import CountUp from "@/components/CountUp";
 
 type Language = "uz" | "en" | "ru";
 type PrayerKey = "fajr" | "dhuhr" | "asr" | "maghrib" | "isha";
@@ -572,10 +573,30 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
     <div className="section-intro"><div><p className="label">{t.stats}</p><h2 className="h2">{t.statsTitle}</h2></div><p className="caption section-note">{t.statsNote}</p></div>
 
     <div className="summary-rail">
-      <div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div>
-      <div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div>
-      <div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div>
+      <div className="summary-main"><CountUp className="figure" value={totals.completed} /><span className="caption">{t.countedToday}</span></div>
+      <div className="summary-stat"><CountUp className="figure" value={totals.remaining} /><span className="caption">{t.remaining}</span></div>
+      <div className="summary-stat"><CountUp className="figure" value={totals.percent} suffix="%" /><span className="caption">{t.monthTarget}</span></div>
     </div>
+
+    {/*
+      A single ratio against a limit is a meter, not a ring. A two-slice donut
+      makes the reader compare arc lengths to answer a question a labelled track
+      answers exactly, so the track carries the ends as direct labels and the
+      figure above it is the headline.
+    */}
+    <section className="meter" aria-label={`${totals.completed} / ${totals.target}`}>
+      <div className="meter-head">
+        <p className="label">{t.done}</p>
+        <p className="caption"><CountUp value={totals.completed} /> <span className="meter-of">/ {totals.target.toLocaleString()}</span></p>
+      </div>
+      <div className="meter-track">
+        <span className="meter-fill" style={{ width: `${totals.percent}%` }} />
+      </div>
+      <div className="meter-foot">
+        <span className="caption">{totals.percent}% · {t.done}</span>
+        <span className="caption">{totals.remaining.toLocaleString()} {t.stillToGo}</span>
+      </div>
+    </section>
 
     <ProgressOverTime history={history} t={t} />
 
@@ -601,7 +622,16 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
           : <svg className="stats-chart" viewBox="0 0 300 90" preserveAspectRatio="none" role="img" aria-label={`${t.last30}: ${windowTotal}`}>
               {days.map((day, index) => {
                 const height = (day.total / busiest) * 74;
-                return <rect key={day.key} x={index * 10 + 1.5} y={80 - height} width={7} height={Math.max(day.total > 0 ? 2 : 0, height)} rx={0} className={day.total > 0 ? "stats-col is-on" : "stats-col"} />;
+                // A hover layer is the default for a plotted chart. The <title> is the
+                // tooltip and the accessible name at once, and the value is still
+                // reachable without it from the caption below, so nothing is gated
+                // behind the pointer. The hit rect is the full column height so the
+                // target is never a two-pixel sliver.
+                return <g key={day.key} className={day.total > 0 ? "stats-col-group is-on" : "stats-col-group"}>
+                  <title>{`${day.key} · ${day.total}`}</title>
+                  <rect x={index * 10 + 1.5} y={80 - height} width={7} height={Math.max(day.total > 0 ? 2 : 0, height)} rx={0} className={day.total > 0 ? "stats-col is-on" : "stats-col"} />
+                  <rect x={index * 10} y={0} width={10} height={80} fill="transparent" />
+                </g>;
               })}
               <line x1="0" y1="80.5" x2="300" y2="80.5" className="stats-axis" />
             </svg>}
