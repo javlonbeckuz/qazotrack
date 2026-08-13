@@ -691,19 +691,59 @@ html, body { overflow-x:hidden; }
 
 .quick-add { position:fixed; right:24px; bottom:24px; z-index:30; display:flex; flex-direction:column; align-items:flex-end; gap:12px; }
 
+/* A pill carrying the eight-point mark from the wordmark and its own label —
+   not a generic plus. The mark is the app's, so the control reads as belonging
+   to this page rather than to a component library. */
 .quick-trigger {
-  width:56px; height:56px; border-radius:50%; border:0; cursor:pointer;
-  display:grid; place-items:center;
+  position:relative; min-height:52px; padding:0 20px 0 16px; border-radius:26px; border:0; cursor:pointer;
+  display:inline-flex; align-items:center; gap:11px;
   background:var(--accent); color:var(--accent-contrast);
+  font-size:14px; font-weight:500; letter-spacing:-.01em;
   box-shadow:0 8px 24px rgba(16,22,38,.26);
-  transition:transform var(--dur-2) var(--ease-out-quart), background var(--dur) ease;
+  transition:transform var(--dur-2) var(--ease-out-quart), background var(--dur) ease, padding var(--dur-2) var(--ease-out-quart);
 }
 @media (hover:hover) { .quick-trigger:hover { background:var(--accent-hover); transform:translateY(-2px); } }
-.quick-trigger:active { transform:scale(.95); transition-duration:var(--dur-1); }
-/* The plus becomes a close mark when the sheet is open — one control, two
-   states, so the reader never hunts for a way out. */
-.quick-trigger svg { transition:transform var(--dur-2) var(--ease-out-quart); }
-.quick-add.is-open .quick-trigger svg { transform:rotate(45deg); }
+.quick-trigger:active { transform:translateY(0) scale(.97); transition-duration:var(--dur-1); }
+
+.quick-mark { display:grid; place-items:center; }
+/* The mark turns an eighth as the sheet opens, so the two squares land on each
+   other and the star closes into a single square — the state change is the
+   geometry resolving, not an icon swapping. */
+.quick-mark svg { transition:transform var(--dur-3) var(--ease-in-out-cubic); }
+.quick-add.is-open .quick-mark svg { transform:rotate(45deg); }
+
+/* A slow breath, ~4s, at a couple of percent. Enough to catch the eye on a
+   still page; far too slow to nag, which matters in an app that refuses
+   streaks and urgency elsewhere. */
+@keyframes quick-breathe {
+  0%,100% { transform:scale(1); }
+  50% { transform:scale(1.045); }
+}
+@keyframes quick-halo {
+  0% { opacity:.5; transform:scale(1); }
+  70%,100% { opacity:0; transform:scale(1.5); }
+}
+.quick-mark { animation:quick-breathe 4.2s var(--ease-in-out-cubic) infinite; }
+/* The halo is a pseudo-element so it cannot affect layout or the hit area. */
+.quick-trigger::after {
+  content:""; position:absolute; inset:0; border-radius:inherit;
+  background:var(--accent); z-index:-1;
+  animation:quick-halo 4.2s var(--ease-out-quart) infinite;
+}
+.quick-add.is-open .quick-mark,
+.quick-add.is-open .quick-trigger::after { animation:none; }
+/* Once the sheet has been opened the button has been found; the breath stops
+   drawing attention to something the reader already knows about. */
+@media (prefers-reduced-motion:reduce) {
+  .quick-mark,.quick-trigger::after { animation:none; }
+}
+
+/* Below the sheet's width the label would crowd the screen edge; the mark
+   alone carries it, with the label still read out to assistive tech. */
+@media (max-width:560px) {
+  .quick-trigger { padding:0; width:56px; height:56px; justify-content:center; border-radius:50%; }
+  .quick-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+}
 
 /* Enter: ease-out at 180ms from the corner it belongs to. Scaling from the
    centre would read as unrelated to the button that opened it. */
