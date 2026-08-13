@@ -237,6 +237,34 @@ export default function Home() {
     setTargets(defaultTargets); setHistory({}); setShowSetup(false); setActiveView("today"); setNotice(null);
   };
 
+
+  /**
+   * Marks the section actually on screen.
+   *
+   * The index used to show what was last pressed, which drifts from reality the
+   * moment somebody scrolls. Observing the sections keeps the two in step, and
+   * the band across the upper third is where the eye reads from.
+   */
+  useEffect(() => {
+    if (!user || !recordLoaded || showSetup) return;
+    const sections = ["today", "overview", "stats"]
+      .map((id) => document.getElementById(id))
+      .filter((node): node is HTMLElement => node !== null);
+    if (sections.length === 0 || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActiveView(visible.target.id as "today" | "overview" | "stats");
+      },
+      { rootMargin: "-20% 0px -55% 0px", threshold: [0, 0.2, 0.6] },
+    );
+    for (const section of sections) observer.observe(section);
+    return () => observer.disconnect();
+  }, [user, recordLoaded, showSetup]);
+
   const timeState = getTimeState(now, language, coordinates);
   // The clock decides unless the reader has explicitly chosen.
   const isNight = themeOverride ? themeOverride === "night" : timeState.isNight;
@@ -290,7 +318,8 @@ export default function Home() {
 
   const showView = (view: "today" | "overview" | "stats") => requireAccount(() => {
     setActiveView(view);
-    revealWorkspace();
+    // The section exists already — nothing is being revealed, only moved to.
+    window.requestAnimationFrame(() => scrollToId(view, 64));
   });
   const openLedger = () => showView("today");
   const openSetup = () => requireAccount(() => { setShowSetup(true); revealWorkspace(); });
@@ -314,7 +343,7 @@ export default function Home() {
   const resetToday = () => { setCounts(Object.fromEntries(Object.keys(emptyCounts).map((key) => [key, 0])) as Counts); setHistory({}); setNotice(t.cleared); };
 
   return <main className={`site-shell ${isNight ? "night" : "day"}`} id="top" lang={language}>
-    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><img className="brand-logo" src="/qazotrack-logo.png" alt="" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation">{user && <><button className={activeView === "today" ? "chip active" : "chip"} onClick={() => showView("today")}>{t.today}</button><button className={activeView === "overview" ? "chip active" : "chip"} onClick={() => showView("overview")}>{t.overview}</button><button className={activeView === "stats" ? "chip active" : "chip"} onClick={() => showView("stats")}>{t.stats}</button><button className="nav-cta" onClick={openSetup}>{t.adjust} <ArrowRight size={14} /></button></>}<div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div>{user
+    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><img className="brand-logo" src="/qazotrack-logo.png" alt="" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation"><div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div>{user
       ? <div className="account-control"><span className="account-email" title={user.email}>{user.email}</span><button className="chip" onClick={signOutNow}>{t.signOut}</button></div>
       : <div className="account-control"><button className="chip" onClick={() => goToAuth("login")}>{t.logIn}</button><button className="nav-cta" onClick={() => goToAuth("signup")}>{t.signUp} <ArrowRight size={14} /></button></div>}<button className="icon-button" onClick={toggleTheme} aria-label="Toggle colour theme" aria-pressed={isNight}>{isNight ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}</button></nav></header>
     <section className="visual-stage"><div className="hero container"><div className="hero-copy"><h1 className="display">{t.heroTitle}</h1><p className="prose">{t.heroBody}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.countPrayer} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={() => scrollToId("how")}>{t.howItWorks} <ChevronRight size={15} /></button></div></div><div className="hero-visual-wrap"><div id="hero-visual" className="gradient-visual"><div className="day-arc" aria-hidden="true"><span className="sun-marker" style={{ "--sun-progress": timeState.progress } as React.CSSProperties} /></div><Suspense fallback={null}><SolarScene coordinates={coordinates} isNight={isNight} /></Suspense><div className="sun-status"><span className="sun-kicker">{t.now} · {timeState.formatted}</span><strong>{t.prayerTime.replace("{name}", t.prayerNames[timeState.current])}</strong><span>{timeState.at(timeState.times[timeState.current]) ?? timeState.label} · {t.local}</span></div><span className="gradient-caption">{isNight ? t.sunSettling : t.steady}</span></div><div className="stat-stack">{user ? <><div><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></> : <div className="stat-empty"><span className="figure">{t.noDataYet}</span><span className="caption">{t.firstRunHint}</span></div>}</div></div></div><div className="intro-band"><div className="container intro-grid"><div><p className="intro-copy">{t.intro}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.openLedger} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={openSetup}>{t.adjustPlan} <Settings2 size={15} /></button></div></div><p className="trust-line"><span className="trust-dot" />{t.trust}</p></div></div></section>
@@ -323,7 +352,21 @@ export default function Home() {
     !user ? <Auth t={t} mode={authMode} onModeChange={setAuthMode} onAuthed={setUser} /> :
     !recordLoaded ? <section className="ledger-band"><div className="container"><p className="caption">{t.loadingAccount}</p></div></section> :
     showSetup ? <Setup profile={profile} t={t} firstRun={!profile} onCancel={() => setShowSetup(false)} onSave={(nextProfile, nextTargets) => { setProfile(nextProfile); setTargets(nextTargets); setShowSetup(false); setNotice(t.setupSaved); putState({ profile: nextProfile, targets: nextTargets, counts, history }).catch(() => setNotice(t.syncFailed)); }} /> :
-    <section className="ledger-band"><div className="container">{activeView === "today" ? <><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; const progress = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0; const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--delay": `${index * 48}ms` } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.at(timeState.times[prayer.key]) ? `${timeState.at(timeState.times[prayer.key])} · ` : ""}{timeState.current === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button ghost" onClick={() => addMissed(prayer.key)} aria-label={`${t.addMissed} ${name}`} title={`${t.addMissed} · ${name}`}><Minus size={15} strokeWidth={1.6} /><span className="step-plus">+</span></button><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></> : activeView === "stats" ? <Stats counts={counts} targets={targets} totals={totals} history={history} t={t} /> : <Overview counts={counts} targets={targets} totals={totals} t={t} />}</div></section>
+    <>
+      {/* The three views are sections of one page now, not tabs. Hiding two
+          thirds of somebody's record behind a switch made the app feel smaller
+          than it is; the index above simply moves you between them. */}
+      <SectionNav active={activeView} t={t} onGo={showView} onAdjust={openSetup} />
+      <section className="ledger-band view-band" id="today">
+        <div className="container"><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; const progress = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0; const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--delay": `${index * 48}ms` } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.at(timeState.times[prayer.key]) ? `${timeState.at(timeState.times[prayer.key])} · ` : ""}{timeState.current === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button ghost" onClick={() => addMissed(prayer.key)} aria-label={`${t.addMissed} ${name}`} title={`${t.addMissed} · ${name}`}><Minus size={15} strokeWidth={1.6} /><span className="step-plus">+</span></button><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></div>
+      </section>
+      <section className="ledger-band view-band alt" id="overview">
+        <div className="container"><Overview counts={counts} targets={targets} totals={totals} t={t} /></div>
+      </section>
+      <section className="ledger-band view-band" id="stats">
+        <div className="container"><Stats counts={counts} targets={targets} totals={totals} history={history} t={t} /></div>
+      </section>
+    </>
     }
     </div>
     <HowItWorks t={t} />
@@ -374,6 +417,51 @@ function readLegacyRecord() {
 
 function clearLegacyRecord() {
   for (const key of ["qaza-profile", "qaza-targets", "qaza-counts", "qaza-history"]) localStorage.removeItem(key);
+}
+
+/**
+ * The index that moves between the three sections.
+ *
+ * It is a strip of its own rather than more chips in the header. The header had
+ * the brand, three view switches, a plan button, three languages, an address, a
+ * sign-out and a theme toggle in one row — eleven controls of five different
+ * kinds, which is what made it read as assembled rather than designed.
+ *
+ * Sticky, so it stays reachable while reading a long ledger, and it marks where
+ * you are rather than what you last pressed.
+ */
+function SectionNav({ active, t, onGo, onAdjust }: {
+  active: "today" | "overview" | "stats";
+  t: Copy;
+  onGo: (view: "today" | "overview" | "stats") => void;
+  onAdjust: () => void;
+}) {
+  const items = [
+    { key: "today" as const, label: t.today },
+    { key: "overview" as const, label: t.overview },
+    { key: "stats" as const, label: t.stats },
+  ];
+  return (
+    <nav className="section-nav" aria-label={t.today}>
+      <div className="container section-nav-inner">
+        <ol className="section-index">
+          {items.map((item, index) => (
+            <li key={item.key}>
+              <button
+                className={active === item.key ? "section-link is-here" : "section-link"}
+                onClick={() => onGo(item.key)}
+                aria-current={active === item.key ? "true" : undefined}
+              >
+                <span className="section-num">{String(index + 1).padStart(2, "0")}</span>
+                <span>{item.label}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+        <button className="section-adjust" onClick={onAdjust}>{t.adjust} <Settings2 size={14} /></button>
+      </div>
+    </nav>
+  );
 }
 
 /**

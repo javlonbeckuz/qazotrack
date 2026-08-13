@@ -507,7 +507,12 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 }
 
 /* Nothing in this layout may scroll the page sideways. */
-html, body { overflow-x:hidden; }
+/* `overflow-x: hidden` here used to clip the hero's overhang, but it makes the
+   root a scroll container, which silently breaks `position: sticky` for every
+   descendant — the section index scrolled away instead of holding. `.site-shell`
+   already uses `overflow-x: clip`, which contains the same overhang without
+   creating a scroll container. */
+html, body { overflow-x:clip; }
 
 /* The display size has a rem floor, so on the narrowest phones (<=360px) it no
    longer scales down with the viewport. Uzbek carries the longest single word
@@ -883,3 +888,59 @@ html, body { overflow-x:hidden; }
 /* A little air above the work area when a control scrolls to it, so the
    section heading is not flush against the top edge of the window. */
 #workspace { scroll-margin-top:18px; }
+
+/* --------------------------------------------------------- section index */
+
+/* A rule with three entries on it, not a row of pills. The header carries
+   identity and account; this carries place. Sticky, because it is how you move
+   while reading something long. */
+.section-nav {
+  position:sticky; top:0; z-index:20;
+  background:color-mix(in srgb, var(--surface-base) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.section-nav-inner { display:flex; align-items:center; justify-content:space-between; gap:24px; min-height:58px; }
+.section-index { list-style:none; display:flex; align-items:stretch; gap:0; margin:0; padding:0; }
+
+.section-link {
+  display:flex; align-items:baseline; gap:9px; padding:19px 22px 17px;
+  border:0; border-bottom:2px solid transparent; background:none; cursor:pointer;
+  color:var(--text-muted); font-size:14px; letter-spacing:-.01em;
+  transition:color var(--dur) ease, border-color var(--dur) ease;
+}
+.section-link:first-child { padding-left:0; }
+@media (hover:hover) { .section-link:hover { color:var(--text-ink); } }
+/* The mark is a rule under the entry, the way a running head is marked in
+   print — not a filled pill, which is the shape every tab bar already uses. */
+.section-link.is-here { color:var(--text-ink); border-bottom-color:var(--accent); }
+/* The ordinal is set in the display face, matching the guide's numerals, so the
+   two indexes on the page read as one system. */
+.section-num {
+  font:400 12px/1 'Playfair Display',Georgia,serif; letter-spacing:0;
+  color:var(--rule-strong); font-variant-numeric:lining-nums tabular-nums;
+}
+.section-link.is-here .section-num { color:var(--accent); }
+
+.section-adjust {
+  display:inline-flex; align-items:center; gap:9px; padding:9px 0;
+  border:0; background:none; cursor:pointer; color:var(--accent); font-size:13px;
+  border-bottom:1px solid transparent; transition:border-color var(--dur) ease;
+}
+.section-adjust:hover { border-bottom-color:var(--accent); }
+
+/* Sections need room under the sticky strip when scrolled to. */
+.view-band { scroll-margin-top:58px; }
+/* Alternating ground so the three read as separate places, not one long page. */
+.view-band { background:var(--surface-band); }
+.view-band.alt { background:var(--surface-base); }
+.view-band + .view-band { border-top:1px solid var(--rule); }
+
+@media (max-width:720px) {
+  .section-nav-inner { gap:12px; }
+  .section-index { overflow-x:auto; scrollbar-width:none; }
+  .section-index::-webkit-scrollbar { display:none; }
+  .section-link { padding:15px 14px 13px; font-size:13px; }
+  .section-adjust span { display:none; }
+  .view-band { scroll-margin-top:52px; }
+}
