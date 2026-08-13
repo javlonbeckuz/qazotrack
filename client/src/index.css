@@ -720,19 +720,34 @@ html, body { overflow-x:hidden; }
 .quick-head .caption { display:block; margin-bottom:10px; }
 .quick-list { list-style:none; margin:0; padding:0; }
 .quick-list li + li { border-top:1px solid var(--rule); }
-.quick-list button {
-  width:100%; padding:11px 4px; border:0; background:none; cursor:pointer; color:var(--text-ink);
-  display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:12px; text-align:left;
-  transition:background var(--dur) ease;
+/* The row is no longer a button: it holds two, which move the number in
+   opposite directions. Both are always visible, so neither is a mode the
+   reader has to notice they are in. */
+.quick-list li {
+  padding:9px 2px;
+  display:grid; grid-template-columns:auto 1fr auto auto auto; align-items:center; gap:10px;
 }
-.quick-list button:hover { background:var(--surface-chip); }
 .quick-name { font-size:14px; font-weight:500; }
-.quick-list .row-figure { font-size:1.05rem; color:var(--text-muted); }
-/* The tick holds its width whether shown or not, so nothing shifts when it
-   appears — the row must not jump under a finger that is still pressing. */
-.quick-tick { width:18px; display:grid; place-items:center; color:var(--accent); opacity:0; transform:scale(.7); }
-.quick-tick.is-on { animation:tick-in var(--dur-2) var(--ease-out-quart) forwards; }
-@keyframes tick-in { to { opacity:1; transform:none; } }
+.quick-list .row-figure { font-size:1.05rem; color:var(--text-muted); min-width:2.5ch; text-align:right; margin-right:2px; }
+
+/* 30px, with the row padding giving each a hit area past the 24px minimum. */
+.quick-act {
+  width:30px; height:30px; display:grid; place-items:center; cursor:pointer;
+  border:1px solid var(--rule-strong); border-radius:var(--radius); background:transparent;
+  color:var(--text-ink);
+  transition:background var(--dur) ease, border-color var(--dur) ease, color var(--dur) ease, transform var(--dur-1) var(--ease-out-quart);
+}
+.quick-act:active { transform:scale(.92); }
+/* Dashed records a debt; filled records one paid off — the same distinction the
+   ledger rows already draw, so it is learned once. */
+.quick-act.ghost { border-style:dashed; color:var(--text-muted); }
+.quick-act.ghost:hover { border-style:solid; border-color:var(--accent); color:var(--accent); }
+.quick-act.filled { background:var(--accent); border-color:var(--accent); color:var(--accent-contrast); }
+.quick-act.filled:hover { background:var(--accent-hover); }
+/* The tick replaces the glyph in place, so the row keeps its geometry. */
+.quick-act.is-flashing { animation:tick-pop var(--dur-2) var(--ease-out-quart); }
+.quick-act.ghost.is-flashing { border-style:solid; border-color:var(--accent); color:var(--accent); }
+@keyframes tick-pop { from { transform:scale(.86); } to { transform:none; } }
 
 .site-shell.night .quick-sheet { background:var(--surface-band); }
 
