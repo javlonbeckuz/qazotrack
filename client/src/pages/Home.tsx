@@ -961,8 +961,36 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
  * x is spaced by real elapsed days, not by entry index, so a gap in the record
  * reads as a gap in time rather than being silently compressed away.
  */
+/**
+ * Total made up, from the first entry to today.
+ *
+ * One series, deliberately. The obvious way to fill a chart like this is a line
+ * per prayer, but five thin lines answer "which prayer" — a question the bars
+ * below already answer better — while burying the one thing this chart is for,
+ * which is whether the total is moving. So the line is alone and the treatment
+ * goes into reading it: a grid to measure against, a lit trace, the latest
+ * figure pinned to its own point, and a crosshair for any day behind it.
+ */
 function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
   const [hovered, setHovered] = useState<number | null>(null);
+  const [drawn, setDrawn] = useState(false);
+  const card = useRef<HTMLElement>(null);
+
+  // The trace draws itself once, when the chart is first reached.
+  useEffect(() => {
+    const node = card.current;
+    if (!node) { setDrawn(true); return; }
+    if (typeof IntersectionObserver === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setDrawn(true);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { setDrawn(true); observer.disconnect(); }
+    }, { rootMargin: "-10% 0px" });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   const dayTotals = Object.entries(history)
     .map(([day, entry]) => [day, prayerMeta.reduce((sum, p) => sum + (entry[p.key] ?? 0), 0)] as const)
     .filter(([, total]) => total > 0)
@@ -987,27 +1015,25 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
   });
   const peak = running;
 
-  const W = 600;
-  const H = 150;
-  const PAD = 8;
-  const px = (x: number) => PAD + x * (W - PAD * 2);
-  const py = (y: number) => H - PAD - (peak > 0 ? y / peak : 0) * (H - PAD * 2);
+  const W = 760;
+  const H = 240;
+  const PAD_X = 10;
+  const PAD_Y = 22;
+  const px = (x: number) => PAD_X + x * (W - PAD_X * 2);
+  const py = (y: number) => H - PAD_Y - (peak > 0 ? y / peak : 0) * (H - PAD_Y * 2);
 
-  // Start the line on the floor the day before the first entry, so the curve
-  // rises from zero rather than appearing to begin mid-air.
-  const coords = [`${PAD},${H - PAD}`, ...points.map((pt) => `${px(pt.x)},${py(pt.y)}`)];
-  // Carry the last value flat to today, which is where the axis ends.
+  const coords = [`${PAD_X},${H - PAD_Y}`, ...points.map((pt) => `${px(pt.x)},${py(pt.y)}`)];
   const lastX = px(points[points.length - 1].x);
-  if (lastX < W - PAD) coords.push(`${W - PAD},${py(peak)}`);
+  if (lastX < W - PAD_X) coords.push(`${W - PAD_X},${py(peak)}`);
   const line = coords.join(" ");
-  const area = `${line} ${W - PAD},${H - PAD}`;
+  const area = `${line} ${W - PAD_X},${H - PAD_Y}`;
 
-  // The point the reader is inspecting. Null means none, and the header falls
-  // back to the running total.
+  // Four gridlines, at values a reader can actually name.
+  const gridValues = [0.25, 0.5, 0.75, 1].map((fraction) => Math.round(peak * fraction));
+
   const active = hovered === null ? null : points[Math.max(0, Math.min(points.length - 1, hovered))];
   const activeDay = hovered === null ? null : dayTotals[Math.max(0, Math.min(dayTotals.length - 1, hovered))][0];
 
-  /** Nearest point to the pointer, in the SVG's own coordinates. */
   const pick = (event: React.PointerEvent<SVGSVGElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
     if (box.width === 0) return;
@@ -1021,7 +1047,10 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
     setHovered(best);
   };
 
-  return <section className="stats-card stats-overtime">
+  const endX = lastX < W - PAD_X ? W - PAD_X : lastX;
+  const endY = py(peak);
+
+  return <section className="stats-card stats-overtime is-plot" ref={card}>
     <div className="stats-overtime-head">
       <p className="label">{t.overTime}</p>
       <p className="caption" role="status" aria-live="polite">
@@ -1029,41 +1058,70 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
       </p>
     </div>
     <div className="stats-plot">
-    <svg
-      className="stats-line is-interactive"
-      viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={`${t.overTime}: ${peak}`}
-      tabIndex={0}
-      onPointerMove={pick}
-      onPointerLeave={() => setHovered(null)}
-      onBlur={() => setHovered(null)}
-      onKeyDown={(event) => {
-        // Arrow keys walk the series, so the figures are reachable without a
-        // pointer. No animation on these: they repeat too fast to animate.
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        const step = event.key === "ArrowRight" ? 1 : -1;
-        setHovered((current) => {
-          const next = (current ?? points.length - 1) + step;
-          return Math.max(0, Math.min(points.length - 1, next));
-        });
-      }}
-    >
-      <polygon className="stats-line-area" points={area} />
-      <polyline className="stats-line-path" points={line} />
-      <line className="stats-axis" x1="0" y1={H - PAD + 0.5} x2={W} y2={H - PAD + 0.5} />
-      {active && <line className="stats-cursor" x1={px(active.x)} y1={PAD} x2={px(active.x)} y2={H - PAD} />}
-    </svg>
-    {/* The dot is HTML, not SVG. This chart stretches to its container with
-        preserveAspectRatio="none", which turns any circle inside it into an
-        ellipse; positioning it as a percentage keeps it round at every width. */}
-    {active && <span
-      className="stats-dot"
-      style={{ left: `${(px(active.x) / W) * 100}%`, top: `${(py(active.y) / H) * 100}%` }}
-      aria-hidden="true"
-    />}
+      <svg
+        className={`stats-line is-interactive ${drawn ? "is-drawn" : ""}`}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        role="img"
+        aria-label={`${t.overTime}: ${peak}`}
+        tabIndex={0}
+        onPointerMove={pick}
+        onPointerLeave={() => setHovered(null)}
+        onBlur={() => setHovered(null)}
+        onKeyDown={(event) => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          const step = event.key === "ArrowRight" ? 1 : -1;
+          setHovered((current) => {
+            const next = (current ?? points.length - 1) + step;
+            return Math.max(0, Math.min(points.length - 1, next));
+          });
+        }}
+      >
+        <defs>
+          <linearGradient id="trace-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.30" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+          </linearGradient>
+          {/* The lit trace: the line drawn twice, once blurred beneath itself. */}
+          <filter id="trace-glow" x="-8%" y="-40%" width="116%" height="180%">
+            <feGaussianBlur stdDeviation="5" result="blur" />
+            <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+          </filter>
+        </defs>
+
+        {/* Solid hairlines, one shade off the surface. Dashes would read as a
+            threshold or a projection, which none of these are. */}
+        {gridValues.map((value, index) => (
+          <line key={value + "-" + index} className="stats-grid-line"
+            x1={PAD_X} x2={W - PAD_X} y1={py(value)} y2={py(value)} />
+        ))}
+
+        <polygon className="stats-line-area" points={area} fill="url(#trace-fill)" />
+        <polyline className="stats-line-path" points={line} filter="url(#trace-glow)" />
+        <line className="stats-axis" x1="0" y1={H - PAD_Y + 0.5} x2={W} y2={H - PAD_Y + 0.5} />
+
+        {active && <line className="stats-cursor" x1={px(active.x)} y1={PAD_Y} x2={px(active.x)} y2={H - PAD_Y} />}
+      </svg>
+
+      {/* Gridline values and the endpoint callout are HTML: the plot stretches
+          to its container, so anything drawn inside it stretches with it. */}
+      <div className="stats-grid-labels" aria-hidden="true">
+        {gridValues.map((value, index) => (
+          <span key={value + "-" + index} style={{ top: `${(py(value) / H) * 100}%` }}>{value.toLocaleString()}</span>
+        ))}
+      </div>
+
+      <span className="stats-endpoint" style={{ left: `${(endX / W) * 100}%`, top: `${(endY / H) * 100}%` }} aria-hidden="true" />
+      <span className="stats-callout" style={{ left: `${(endX / W) * 100}%`, top: `${(endY / H) * 100}%` }} aria-hidden="true">
+        {peak.toLocaleString()}
+      </span>
+
+      {active && <span
+        className="stats-dot"
+        style={{ left: `${(px(active.x) / W) * 100}%`, top: `${(py(active.y) / H) * 100}%` }}
+        aria-hidden="true"
+      />}
     </div>
     <p className="caption">{t.overTimeNote}</p>
   </section>;

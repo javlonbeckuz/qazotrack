@@ -944,3 +944,66 @@ html, body { overflow-x:clip; }
   .section-adjust span { display:none; }
   .view-band { scroll-margin-top:52px; }
 }
+
+/* ------------------------------------------------------------- the trace */
+
+/* The chart is the one place on the page allowed to glow. It earns it: this is
+   the only view of whether the total is actually moving. */
+.stats-overtime.is-plot { gap:12px; }
+.stats-overtime.is-plot .stats-line { height:240px; }
+.stats-plot { position:relative; }
+
+/* Hairline grid, solid, one shade off the surface — measurable without
+   competing with the trace. */
+.stats-grid-line { stroke:var(--rule); stroke-width:1; vector-effect:non-scaling-stroke; opacity:.7; }
+.site-shell.night .stats-grid-line { opacity:.45; }
+
+.stats-line-path {
+  fill:none; stroke:var(--accent); stroke-width:2.5; stroke-linejoin:round; stroke-linecap:round;
+  vector-effect:non-scaling-stroke;
+}
+/* Drawn on first sight: the trace runs in from the left the way it was made,
+   one day after another. */
+.stats-line.is-interactive .stats-line-path { stroke-dasharray:2400; stroke-dashoffset:2400; }
+.stats-line.is-drawn .stats-line-path { transition:stroke-dashoffset 1500ms var(--ease-out-quart); stroke-dashoffset:0; }
+/* The gradient has to be set here, not as a `fill` attribute on the polygon:
+   an earlier rule already styles `.stats-line-area`, and CSS beats a
+   presentation attribute, so the attribute version rendered as a solid block. */
+.stats-overtime.is-plot .stats-line-area { fill:url(#trace-fill); opacity:0; transition:opacity 900ms 400ms ease; }
+.stats-overtime.is-plot .stats-line.is-drawn .stats-line-area { opacity:1; }
+
+/* Values sit beside their gridlines rather than on a separate axis column, so
+   the plot keeps its full width. */
+.stats-grid-labels { position:absolute; inset:0; pointer-events:none; }
+.stats-grid-labels span {
+  position:absolute; left:0; transform:translateY(-50%);
+  padding:0 6px 0 0; font-size:11px; color:var(--text-muted);
+  font-variant-numeric:lining-nums tabular-nums; background:transparent;
+}
+
+/* The latest figure, pinned to the point it belongs to — the callout in the
+   reference, minus the ticker chrome. */
+.stats-endpoint {
+  position:absolute; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%;
+  background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent), 0 0 14px var(--accent);
+  pointer-events:none;
+}
+.stats-callout {
+  /* Beside the point, not above it: at the top of the plot — which is exactly
+     where the latest figure sits on a rising line — above collides with the
+     card's own heading. */
+  position:absolute; transform:translate(-100%, -50%); margin-left:-14px;
+  padding:4px 9px; border:1px solid var(--rule); border-radius:var(--radius);
+  background:var(--surface-base); color:var(--text-ink);
+  font:400 14px/1 'Playfair Display',Georgia,serif; font-variant-numeric:lining-nums tabular-nums;
+  white-space:nowrap; pointer-events:none;
+  opacity:0; transition:opacity var(--dur-3) 1100ms ease;
+}
+.stats-line.is-drawn ~ .stats-callout,
+.is-drawn + .stats-grid-labels + .stats-endpoint + .stats-callout { opacity:1; }
+.stats-overtime.is-plot .stats-callout { opacity:1; }
+
+@media (max-width:720px) {
+  .stats-overtime.is-plot .stats-line { height:190px; }
+  .stats-callout { font-size:12px; }
+}
