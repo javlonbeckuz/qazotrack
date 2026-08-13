@@ -362,28 +362,53 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 .site-shell.night .overview .figure { text-shadow:1px 0 0 currentColor,0 0 16px rgba(156,182,228,.16); }
 @media (max-width:800px) { .stat-stack .figure { font-size:34px; } .summary-rail .figure { font-size:30px; } .overview .figure.huge { font-size:58px; } }
 
-/* Exact supplied font: Upper Clock for the pixel-style numeric system. */
-@font-face { font-family:"Upper Clock"; src:url("./assets/fonts/upper-clock/UpperClock-Regular.otf") format("opentype"); font-weight:400; font-style:normal; font-display:swap; }
-@font-face { font-family:"Upper Clock"; src:url("./assets/fonts/upper-clock/UpperClock-Solid.otf") format("opentype"); font-weight:700; font-style:normal; font-display:swap; }
-.stat-stack .figure,
-.summary-rail .figure,
-.row-figure,
-.overview .figure,
-.overview-item .figure,
-.sun-kicker { font-family:"Upper Clock","Courier New",ui-monospace,monospace; font-variant-numeric:normal; font-weight:400; letter-spacing:.02em; text-shadow:none; }
-.stat-stack .figure { font-size:44px; }
-.summary-rail .figure { font-size:40px; }
-.row-figure { font-size:26px; }
-.overview .figure.huge { font-size:76px; }
-.overview-item .figure { font-size:30px; }
-.overview-item .figure small { font-family:"Upper Clock","Courier New",ui-monospace,monospace; font-size:.5em; }
-.site-shell.night .stat-stack .figure,
-.site-shell.night .summary-rail .figure,
-.site-shell.night .row-figure,
-.site-shell.night .overview .figure { text-shadow:0 0 16px rgba(156,182,228,.18); }
-@media (max-width:800px) { .stat-stack .figure { font-size:36px; } .summary-rail .figure { font-size:32px; } .overview .figure.huge { font-size:60px; } }
+/* ------------------------------------------------------ the numeric system */
 
-/* Upper Clock is numeric-only; restore the editorial UI font for time status copy. */
+/* Figures are set in the display serif, not a pixel-clock face.
+ *
+ * Upper Clock was a segmented-LCD drawing: it had no letterforms, only digits,
+ * and it pulled every number in the app away from the editorial voice the
+ * headings set. Playfair's numerals are the same drawing as the headings, so a
+ * count now reads as part of the page rather than as a readout bolted onto it.
+ *
+ * Lining and tabular: lining so digits sit on the baseline at a common height,
+ * tabular so a column of counts stays in vertical register while it changes.
+ * No shadow and no glow — the size carries the emphasis on its own. */
+/* Matched on the figure classes themselves rather than on where they sit. The
+   ancestor-qualified version missed any figure that moved, which is how a
+   number ends up rendering in the fallback sans. */
+.figure,
+.figure small,
+.row-figure,
+.stats-bar-value,
+.stats-bar-value small {
+  font-family:'Playfair Display',Georgia,serif;
+  font-weight:400;
+  font-variant-numeric:lining-nums tabular-nums;
+  letter-spacing:-.03em;
+  text-shadow:none;
+}
+
+/* A lighter weight needs a little more size to hold the same presence. */
+.stat-stack .figure { font-size:clamp(2.5rem,3.4vw,3.05rem); line-height:.95; }
+.summary-rail .figure { font-size:clamp(2.3rem,3.1vw,2.85rem); line-height:.95; }
+.stats-figures .figure { font-size:1.95rem; line-height:1; }
+.row-figure { font-size:1.6rem; min-width:2ch; text-align:center; }
+.overview .figure.huge { font-size:clamp(4.2rem,9vw,5.6rem); line-height:.9; }
+.overview-item .figure { font-size:1.75rem; }
+.overview-item .figure small,
+.stats-bar-value small { font-size:.52em; letter-spacing:-.01em; opacity:.6; }
+.stats-bar-value { font-size:1rem; }
+
+/* The time kicker is a label, not a figure; it stays in the interface face. */
+.sun-kicker { font-family:inherit; font-variant-numeric:tabular-nums; letter-spacing:.01em; text-shadow:none; }
+
+@media (max-width:800px) {
+  .stat-stack .figure { font-size:2.1rem; }
+  .summary-rail .figure { font-size:1.95rem; }
+}
+
+/* Time status copy is prose, so it stays in the interface font. */
 .sun-kicker { font-family:inherit; font-variant-numeric:normal; font-weight:500; letter-spacing:.02em; text-shadow:none; }
 
 /* QazoTrack logo mark: compact, crisp, and aligned with the wordmark. */
@@ -392,7 +417,7 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 
 /* Setup: the plan entry field. Built from the same tokens as .step-button so
    the row reads identically to the counter rows it replaces. */
-.setup-input { width:96px; height:44px; padding:0 12px; text-align:center; border:1px solid var(--rule); border-radius:var(--radius); background:var(--surface-base); color:var(--text-ink); font:400 20px/1 "Upper Clock","Courier New",ui-monospace,monospace; letter-spacing:.02em; transition:border-color var(--dur) var(--ease-out); }
+.setup-input { width:96px; height:44px; padding:0 12px; text-align:center; border:1px solid var(--rule); border-radius:var(--radius); background:var(--surface-base); color:var(--text-ink); font:400 16px/1.2 Inter,sans-serif; font-variant-numeric:lining-nums tabular-nums; letter-spacing:normal; transition:border-color var(--dur) var(--ease-out); }
 .setup-input:focus { outline:none; border-color:var(--accent); }
 .setup-input::-webkit-outer-spin-button,.setup-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 .setup-input[type=number] { -moz-appearance:textfield; }
@@ -514,11 +539,8 @@ html, body { overflow-x:hidden; }
 }
 
 /* Email and password share the date field's shape so the sign-up form and the
-   setup form read as one family — but not its typeface. Upper Clock is the
-   pixel face for figures and carries no letterforms, so an address rendered
-   half in it and half in the Courier fallback. Addresses and passwords are
-   text, so they take the interface font the captions use. 16px because Safari
-   on iOS zooms the page when a focused field is smaller. */
+   setup form read as one family. 16px because Safari on iOS zooms the page
+   when a focused field is smaller than that. */
 .setup-email {
   min-width:min(280px, 100%); flex:1 1 240px;
   font:400 16px/1.4 Inter,sans-serif; letter-spacing:normal; text-align:left;
