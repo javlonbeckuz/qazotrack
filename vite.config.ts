@@ -3,7 +3,6 @@ import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
-import { createApi } from "./server/api";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -202,23 +201,6 @@ function vitePluginStorageProxy(): Plugin {
   };
 }
 
-/**
- * Serves the account API from the dev server itself.
- *
- * Mounting it as middleware keeps `npm run dev` a single command on a single
- * port: the client and the API share an origin, so the session cookie is
- * same-site and there is no proxy or CORS configuration to keep in step with
- * production. In production `server/index.ts` mounts the very same app.
- */
-function apiPlugin(): Plugin {
-  return {
-    name: "qazotrack-api",
-    configureServer(server: ViteDevServer) {
-      server.middlewares.use(createApi());
-    },
-  };
-}
-
 // Two Manus editor plugins were removed when this project moved out of the
 // Manus workspace:
 //
@@ -234,7 +216,10 @@ function apiPlugin(): Plugin {
 //
 // Both are pure editor tooling and neither affects the app. Reinstall the two
 // packages and add them back here if this project ever returns to Manus.
-const plugins = [react(), tailwindcss(), apiPlugin(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+// The account API used to be mounted here as dev middleware so that `npm run
+// dev` stayed one command on one port. Appwrite serves it now, so dev and
+// production talk to the same hosted backend and there is no local server.
+const plugins = [react(), tailwindcss(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
 
 export default defineConfig({
   plugins,
