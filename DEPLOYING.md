@@ -64,10 +64,12 @@ Deployment is wired to GitHub: pushing to `main` on
 | Install command | `npm install` |
 | Build command | `npm run build` |
 | Output directory | `./dist` |
-| Fallback file | `index.html` |
+| Fallback file | *(empty)* |
 
-The fallback matters: routing is client-side via wouter, so a deep link like `/stats` has no
-file of its own and must be served `index.html`.
+No fallback is needed. `App.tsx` renders `<Home />` and there is no router — the app is one
+page, so `/` is the only path it ever serves and an unknown path correctly answers 404.
+`pages/NotFound.tsx` imports wouter but nothing imports it. If real routes are ever added,
+set the fallback to `index.html` at the same time, or every deep link will 404.
 
 ## Deploying a change
 
