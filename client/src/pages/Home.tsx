@@ -236,7 +236,20 @@ export default function Home() {
   // The clock decides unless the reader has explicitly chosen.
   const isNight = themeOverride ? themeOverride === "night" : timeState.isNight;
   const toggleTheme = () => { const next = isNight ? "day" : "night"; setThemeOverride(next); localStorage.setItem("qaza-theme", next); };
-  const totals = useMemo(() => { const completed = Object.values(counts).reduce((sum, value) => sum + value, 0); const target = Object.values(targets).reduce((sum, value) => sum + value, 0); return { completed, target, remaining: target - completed, percent: Math.round((completed / target) * 100) }; }, [counts, targets]);
+  const totals = useMemo(() => {
+    const completed = Object.values(counts).reduce((sum, value) => sum + value, 0);
+    const target = Object.values(targets).reduce((sum, value) => sum + value, 0);
+    // A reader who owes nothing divides by zero and renders "NaN%", and one who
+    // counts past their plan goes over 100% with a negative remainder. Both are
+    // reachable: the first by having begun praying at maturity, the second by
+    // pressing + more times than the plan asks for.
+    return {
+      completed,
+      target,
+      remaining: Math.max(0, target - completed),
+      percent: target > 0 ? Math.min(100, Math.round((completed / target) * 100)) : 0,
+    };
+  }, [counts, targets]);
   const changeCount = (key: PrayerKey, delta: number) => {
     setCounts((current) => {
       const next = Math.max(0, current[key] + delta);
@@ -270,10 +283,11 @@ export default function Home() {
    * falls — which is what actually happened.
    */
   const addMissed = (key: PrayerKey) => requireAccount(() => {
-    const nextTargets = { ...targets, [key]: targets[key] + 1 };
-    setTargets(nextTargets);
+    setTargets((current) => ({ ...current, [key]: current[key] + 1 }));
     setNotice(t.addMissedOne);
-    putState({ profile, targets: nextTargets, counts, history }).catch(() => setNotice(t.syncFailed));
+    // No putState here. The debounced autosave already watches `targets`, so
+    // writing directly would send the same record twice for one press — once
+    // now and once 600ms later.
   });
 
   const resetToday = () => { setCounts(Object.fromEntries(Object.keys(emptyCounts).map((key) => [key, 0])) as Counts); setHistory({}); setNotice(t.cleared); };
@@ -688,6 +702,7 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
         {active ? `${activeDay} · ${active.y} ${t.total}` : `${dayTotals[0][0]} · ${peak} ${t.total}`}
       </p>
     </div>
+    <div className="stats-plot">
     <svg
       className="stats-line is-interactive"
       viewBox={`0 0 ${W} ${H}`}
@@ -713,11 +728,17 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
       <polygon className="stats-line-area" points={area} />
       <polyline className="stats-line-path" points={line} />
       <line className="stats-axis" x1="0" y1={H - PAD + 0.5} x2={W} y2={H - PAD + 0.5} />
-      {active && <>
-        <line className="stats-cursor" x1={px(active.x)} y1={PAD} x2={px(active.x)} y2={H - PAD} />
-        <circle className="stats-dot" cx={px(active.x)} cy={py(active.y)} r={4} />
-      </>}
+      {active && <line className="stats-cursor" x1={px(active.x)} y1={PAD} x2={px(active.x)} y2={H - PAD} />}
     </svg>
+    {/* The dot is HTML, not SVG. This chart stretches to its container with
+        preserveAspectRatio="none", which turns any circle inside it into an
+        ellipse; positioning it as a percentage keeps it round at every width. */}
+    {active && <span
+      className="stats-dot"
+      style={{ left: `${(px(active.x) / W) * 100}%`, top: `${(py(active.y) / H) * 100}%` }}
+      aria-hidden="true"
+    />}
+    </div>
     <p className="caption">{t.overTimeNote}</p>
   </section>;
 }

@@ -602,9 +602,12 @@ html, body { overflow-x:hidden; }
 .stats-line.is-interactive { touch-action:none; cursor:crosshair; }
 .stats-line.is-interactive:focus-visible { outline:2px solid var(--accent); outline-offset:3px; }
 .stats-cursor { stroke:var(--rule-strong); stroke-width:1; stroke-dasharray:3 3; vector-effect:non-scaling-stroke; }
+/* The dot positions against the plot box, not the whole card, or its vertical
+   percentage would be measured against the heading and footnote too. */
+.stats-plot { position:relative; display:block; }
 .stats-dot {
-  fill:var(--accent); stroke:var(--surface-band); stroke-width:2; vector-effect:non-scaling-stroke;
-  transform-box:fill-box; transform-origin:center;
+  position:absolute; width:9px; height:9px; margin:-4.5px 0 0 -4.5px; border-radius:50%;
+  background:var(--accent); box-shadow:0 0 0 2px var(--surface-band); pointer-events:none;
   animation:dot-in var(--dur-2) var(--ease-out-quart) both;
 }
 @keyframes dot-in { from { opacity:0; transform:scale(.6); } to { opacity:1; transform:none; } }
