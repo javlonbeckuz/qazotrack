@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronRight, Moon, Plus, RotateCcw, Settings2, Sun } from "lucide-react";
 import { calculateQaza, DEFAULT_MENSTRUATION_DAYS, validateProfile, type Profile, type ValidationCode } from "@/lib/qaza";
+import { ApiError, getState, logIn, logOut, me, putState, signUp, type ApiErrorCode, type User } from "@/lib/api";
 
 type Language = "uz" | "en" | "ru";
 type PrayerKey = "fajr" | "dhuhr" | "asr" | "maghrib" | "isha";
@@ -27,20 +28,37 @@ const prayerMeta = [
   { key: "maghrib", arabic: "المغرب", target: 11 },
   { key: "isha", arabic: "العشاء", target: 21 },
 ] as const;
+/**
+ * A calendar day in the reader's own timezone.
+ *
+ * NOT `toISOString().slice(0, 10)`, which is UTC: east of Greenwich that
+ * attributes anything logged between local midnight and UTC midnight to the
+ * previous day. For UTC+5 that window is 00:00-05:00 local — precisely when
+ * Fajr is prayed, so the prayer most likely to be logged early was the one
+ * most likely to land on the wrong day.
+ */
+const localDay = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
 const prayerTimes = [
   { key: "fajr", time: "05:00" }, { key: "dhuhr", time: "12:30" }, { key: "asr", time: "16:30" }, { key: "maghrib", time: "19:30" }, { key: "isha", time: "21:00" },
 ] as const;
 
 const copy = {
   uz: {
+    accountLabel: "Hisob", signUpTitle: "Hisob yarating", logInTitle: "Hisobingizga kiring", accountBody: "Hisobingiz yozuvlaringizni telefon va kompyuter o‘rtasida saqlaydi.", email: "Elektron pochta", password: "Parol", passwordHint: "Kamida 8 belgi.", signUp: "Hisob yaratish", logIn: "Kirish", signOut: "Chiqish", haveAccount: "Hisobingiz bormi? Kirish", noAccount: "Hisobingiz yo‘qmi? Yaratish", authWorking: "Kutib turing…", loadingAccount: "Yozuvlaringiz yuklanmoqda…", importedLocal: "Shu qurilmadagi yozuvlar hisobingizga ko‘chirildi.", syncFailed: "Saqlanmadi — ulanish tiklanganda qayta uriniladi.", errors: { emailInvalid: "Pochta manzili noto‘g‘ri.", passwordShort: "Parol kamida 8 belgi bo‘lsin.", emailTaken: "Bu pochta allaqachon ro‘yxatdan o‘tgan.", credentialsWrong: "Pochta yoki parol noto‘g‘ri.", rateLimited: "Juda ko‘p urinish. 15 daqiqadan so‘ng qayta urinib ko‘ring.", unauthorized: "Seans tugadi. Qaytadan kiring.", badRequest: "So‘rov bajarilmadi.", offline: "Serverga ulanib bo‘lmadi." }, 
+    overTime: "Vaqt bo‘yicha", overTimeNote: "Jami qazo qilingan namozlar — birinchi yozuvdan bugungacha.", overTimeEmpty: "Egri chiziq ikkinchi kundan boshlab chiziladi.", since: "boshlanishi", total: "jami", 
     stats: "Statistika", statsTitle: "Rivojingiz bir qarashda.", statsNote: "Faqat qayd — solishtiruv ham, ketma-ketlik ham yo‘q.", byPrayer: "Namozlar bo‘yicha", last30: "So‘nggi 30 kun", pace: "Sur‘at", perDay: "Kuniga o‘rtacha", projected: "Taxminiy tugash", atThisPace: "Shu sur‘atda", noActivity: "Hali yozuv yo‘q — birinchi namozdan keyin shu yerda ko‘rinadi.", noProjection: "Sur‘at aniqlangach ko‘rsatiladi.", done: "Bajarildi", 
     today: "Bugun", overview: "Umumiy", adjust: "Rejani sozlash", heroTitle: <>Qazo namozlaringizni<br />birin-ketin ado eting.</>, heroBody: "Qoldirilgan namozlarni ko‘rinadigan, boshqariladigan va to‘g‘ri yo‘nalishda saqlash uchun sodda makon.", countPrayer: "Namoz sanash", howItWorks: "Qanday ishlaydi", intro: "Ketma-ketlik ham, bosim ham yo‘q. Faqat joy ajratgan namozlaringizning aniq qaydi — bir sokin qadamdan.", openLedger: "Bugungi daftarni ochish", adjustPlan: "Rejamni sozlash", trust: "Barqaror rivoj uchun sodda.", ledger: "Bugungi daftar", ledgerTitle: "Kichik qadam ham qadam.", ledgerNote: <>Har bir ado etilgan namozdan keyin + ni bosing.<br />Keyin istalgan payt o‘zgartirishingiz mumkin.</>, countedToday: "bugun sanalgan namoz", remaining: "rejada qolgan", monthTarget: "oylik maqsadning", planned: "rejalashtirilgan", reset: "Bugunni tozalash", ready: "Boshlashga tayyor.", complete: "Bir namoz bajarildi.", movedBack: "Bir namoz ro‘yxatga qaytarildi.", cleared: "Bugungi yozuvlar tozalandi.", private: "Rivojingiz ushbu brauzerda maxfiy saqlanadi.", future: "Sozlamalaringiz kelajakdagi yangilanish uchun tayyor.", planReady: "Rejangizni istalgan payt o‘zgartirishingiz mumkin.", overviewLabel: "Reja ko‘rinishi", overviewTitle: "Oyingiz bir qarashda.", overviewNote: <>Keyingi e’tiboringiz qayerda bo‘lishi<br />mumkinligini sodda ko‘ring.</>, countedOf: "{n} ta rejalashtirilgan namozdan sanaldi", stillToGo: "hali qoldi", local: "mahalliy vaqt", setupLabel: "Sozlash", setupTitle: "Nechta namozni qazo qilyapsiz?", setupBody: "Tug‘ilgan sanangiz va namozni muntazam o‘qiy boshlagan sanangizni kiriting — qolganini o‘zimiz hisoblaymiz.", birthDate: "Tug‘ilgan sana", gender: "Jins", male: "Erkak", female: "Ayol", startPraying: "Namozni qachon boshlagansiz", notYet: "Hali muntazam emas", pickDate: "Sanani tanlang", menstruation: "Oyiga hayz kunlari", menstruationHelp: "O‘rtacha. Bu kunlar hisobdan chiqariladi.", bulughNote: "Balog‘at yoshi: o‘g‘il bolalar uchun 12 qamariy yil, qiz bolalar uchun 9 qamariy yil — hanafiy manbalaridagi ehtiyotkor o‘lchov.", estimateLabel: "Hisob", bulughDate: "Balog‘at sanasi", daysCounted: "kun hisoblandi", excluded: "kun chiqarildi", perPrayer: "Har bir namozdan", errBirthMissing: "Tug‘ilgan sanani kiriting.", errBirthFuture: "Tug‘ilgan sana kelajakda bo‘lishi mumkin emas.", errBirthRange: "Sana 1937–2076 oralig‘ida bo‘lishi kerak.", errStartBefore: "Bu sana balog‘at sanasidan oldin.", errStartFuture: "Bu sana kelajakda.", setupSave: "Kuzatishni boshlash", setupCancel: "Bekor qilish", setupSaved: "Rejangiz saqlandi.", now: "Hozir", prayerNames: { fajr: "Bomdod", dhuhr: "Peshin", asr: "Asr", maghrib: "Shom", isha: "Xufton" }, firstLight: "Tong oldi", midday: "Peshin", lateAfternoon: "Kechki tush", afterSunset: "Quyosh botgach", night: "Tun", sunSettling: "Kun sokinlashmoqda.", steady: "Shoshilmasdan, barqaror.", prayerTime: "{name} vaqti", personal: "Shaxsiy foydalanish", footer: "Barqaror rivoj uchun yaratilgan", remove: "Bir namozni olib tashlash", add: "Bir namoz qo‘shish", targetOf: "maqsadning",
   },
   en: {
+    accountLabel: "Account", signUpTitle: "Create your account", logInTitle: "Sign in", accountBody: "An account keeps your record with you across phone and laptop.", email: "Email", password: "Password", passwordHint: "At least 8 characters.", signUp: "Create account", logIn: "Sign in", signOut: "Sign out", haveAccount: "Already have an account? Sign in", noAccount: "No account yet? Create one", authWorking: "One moment…", loadingAccount: "Loading your record…", importedLocal: "The record already on this device has been moved into your account.", syncFailed: "Not saved — this will retry once the connection is back.", errors: { emailInvalid: "That email address does not look right.", passwordShort: "Use at least 8 characters.", emailTaken: "There is already an account with that email.", credentialsWrong: "That email and password do not match.", rateLimited: "Too many attempts. Try again in 15 minutes.", unauthorized: "Your session has ended. Please sign in again.", badRequest: "That request could not be completed.", offline: "Could not reach the server." }, 
+    overTime: "Over time", overTimeNote: "Total prayers made up, from your first entry to today.", overTimeEmpty: "The curve appears once there is a second day to draw between.", since: "from", total: "total", 
     stats: "Stats", statsTitle: "Your progress at a glance.", statsNote: "A record only — no comparisons and no streaks.", byPrayer: "By prayer", last30: "Last 30 days", pace: "Pace", perDay: "Average per day", projected: "Projected finish", atThisPace: "At this pace", noActivity: "Nothing recorded yet — your first prayer will show up here.", noProjection: "Shown once there is a pace to measure.", done: "Done", 
     today: "Today", overview: "Overview", adjust: "Adjust plan", heroTitle: <>Complete your missed prayers<br />one calm step at a time.</>, heroBody: "A simple place to keep your missed prayers visible, manageable, and moving in the right direction.", countPrayer: "Count a prayer", howItWorks: "How it works", intro: "No streaks. No pressure. Just a clear record of the prayers you’ve made space for, one quiet entry at a time.", openLedger: "Open today’s ledger", adjustPlan: "Adjust my plan", trust: "Kept simple for steady progress.", ledger: "Today’s ledger", ledgerTitle: "A little done is still done.", ledgerNote: <>Tap + after each prayer you make up.<br />You can always adjust it later.</>, countedToday: "prayers counted today", remaining: "remaining in this plan", monthTarget: "of this month’s target", planned: "planned", reset: "Reset today", ready: "Ready when you are.", complete: "One prayer marked complete.", movedBack: "One prayer moved back to your list.", cleared: "Today’s entries have been cleared.", private: "Your progress is stored privately in this browser.", future: "Your settings are ready for a future update.", planReady: "Your plan can be adjusted whenever you need.", overviewLabel: "Plan overview", overviewTitle: "Your month at a glance.", overviewNote: <>A simple view of where your attention<br />can go next.</>, countedOf: "of {n} planned prayers counted", stillToGo: "still to go", local: "local time", setupLabel: "Set up", setupTitle: "How many prayers are you making up?", setupBody: "Enter your date of birth and when you began praying regularly — the rest is worked out for you.", birthDate: "Date of birth", gender: "Gender", male: "Male", female: "Female", startPraying: "When you began praying regularly", notYet: "Not regularly yet", pickDate: "Pick a date", menstruation: "Menstruation days per month", menstruationHelp: "On average. These days are excluded from the count.", bulughNote: "Maturity is taken as 12 lunar years for boys and 9 for girls — the cautious figure used in Hanafi guidance.", estimateLabel: "Estimate", bulughDate: "Maturity date", daysCounted: "days counted", excluded: "days excluded", perPrayer: "Of each prayer", errBirthMissing: "Enter your date of birth.", errBirthFuture: "That date is in the future.", errBirthRange: "The date needs to fall between 1937 and 2076.", errStartBefore: "That is before your maturity date.", errStartFuture: "That date is in the future.", setupSave: "Start tracking", setupCancel: "Cancel", setupSaved: "Your plan has been saved.", now: "Now", prayerNames: { fajr: "Fajr", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" }, firstLight: "First light", midday: "Midday", lateAfternoon: "Late afternoon", afterSunset: "After sunset", night: "Night", sunSettling: "The day is settling.", steady: "Steady, not hurried.", prayerTime: "{name} time", personal: "Personal use", footer: "Built for steady progress", remove: "Remove one prayer", add: "Add one prayer", targetOf: "of this month’s target",
   },
   ru: {
+    accountLabel: "Аккаунт", signUpTitle: "Создайте аккаунт", logInTitle: "Войти", accountBody: "Аккаунт сохраняет ваши записи на телефоне и компьютере.", email: "Эл. почта", password: "Пароль", passwordHint: "Не менее 8 символов.", signUp: "Создать аккаунт", logIn: "Войти", signOut: "Выйти", haveAccount: "Уже есть аккаунт? Войти", noAccount: "Нет аккаунта? Создать", authWorking: "Минуточку…", loadingAccount: "Загружаем ваши записи…", importedLocal: "Записи с этого устройства перенесены в ваш аккаунт.", syncFailed: "Не сохранено — повторим после восстановления связи.", errors: { emailInvalid: "Адрес почты выглядит неверно.", passwordShort: "Используйте не менее 8 символов.", emailTaken: "Аккаунт с такой почтой уже есть.", credentialsWrong: "Почта и пароль не совпадают.", rateLimited: "Слишком много попыток. Повторите через 15 минут.", unauthorized: "Сеанс завершён. Войдите снова.", badRequest: "Запрос не выполнен.", offline: "Не удалось связаться с сервером." }, 
+    overTime: "Со временем", overTimeNote: "Всего восполнено — от первой записи до сегодня.", overTimeEmpty: "Кривая появится со второго дня.", since: "с", total: "всего", 
     stats: "Статистика", statsTitle: "Ваш прогресс одним взглядом.", statsNote: "Только запись — без сравнений и без серий.", byPrayer: "По молитвам", last30: "Последние 30 дней", pace: "Темп", perDay: "В среднем в день", projected: "Ожидаемое завершение", atThisPace: "При таком темпе", noActivity: "Пока нет записей — первая молитва появится здесь.", noProjection: "Появится, когда будет что измерять.", done: "Готово", 
     today: "Сегодня", overview: "Обзор", adjust: "Изменить план", heroTitle: <>Восполняйте пропущенные молитвы<br />шаг за спокойным шагом.</>, heroBody: "Простое место, где пропущенные молитвы остаются видимыми, управляемыми и движутся в правильном направлении.", countPrayer: "Считать молитву", howItWorks: "Как это работает", intro: "Без серий и давления. Только ясная запись молитв, которым вы нашли место, — один спокойный шаг за раз.", openLedger: "Открыть дневник", adjustPlan: "Изменить мой план", trust: "Просто для устойчивого прогресса.", ledger: "Дневник сегодня", ledgerTitle: "Даже малое дело — дело.", ledgerNote: <>Нажимайте + после каждой восполненной молитвы.<br />Позже всё можно изменить.</>, countedToday: "молитв сегодня", remaining: "осталось в плане", monthTarget: "от цели месяца", planned: "запланировано", reset: "Сбросить сегодня", ready: "Готово, когда готовы вы.", complete: "Одна молитва отмечена.", movedBack: "Одна молитва возвращена в список.", cleared: "Записи за сегодня очищены.", private: "Ваш прогресс хранится конфиденциально в этом браузере.", future: "Настройки будут доступны в будущем обновлении.", planReady: "План можно изменить в любое время.", overviewLabel: "Обзор плана", overviewTitle: "Ваш месяц одним взглядом.", overviewNote: <>Простой взгляд на то, куда<br />направить внимание дальше.</>, countedOf: "из {n} запланированных молитв отмечено", stillToGo: "осталось", local: "местное время", setupLabel: "Настройка", setupTitle: "Сколько молитв вы восполняете?", setupBody: "Укажите дату рождения и когда вы начали регулярно молиться — остальное мы посчитаем.", birthDate: "Дата рождения", gender: "Пол", male: "Мужской", female: "Женский", startPraying: "Когда начали регулярно молиться", notYet: "Пока не регулярно", pickDate: "Выберите дату", menstruation: "Дней менструации в месяц", menstruationHelp: "В среднем. Эти дни исключаются из подсчёта.", bulughNote: "Совершеннолетие берётся как 12 лунных лет для мальчиков и 9 для девочек — осторожная оценка из ханафитских источников.", estimateLabel: "Расчёт", bulughDate: "Дата совершеннолетия", daysCounted: "дней учтено", excluded: "дней исключено", perPrayer: "Каждой молитвы", errBirthMissing: "Укажите дату рождения.", errBirthFuture: "Эта дата в будущем.", errBirthRange: "Дата должна быть между 1937 и 2076.", errStartBefore: "Это раньше даты совершеннолетия.", errStartFuture: "Эта дата в будущем.", setupSave: "Начать отслеживание", setupCancel: "Отмена", setupSaved: "Ваш план сохранён.", now: "Сейчас", prayerNames: { fajr: "Фаджр", dhuhr: "Зухр", asr: "Аср", maghrib: "Магриб", isha: "Иша" }, firstLight: "Перед рассветом", midday: "Полдень", lateAfternoon: "После полудня", afterSunset: "После заката", night: "Ночь", sunSettling: "День успокаивается.", steady: "Спокойно и без спешки.", prayerTime: "Время {name}", personal: "Для личного использования", footer: "Создано для устойчивого прогресса", remove: "Убрать одну молитву", add: "Добавить одну молитву", targetOf: "от цели месяца",
   },
@@ -62,13 +80,17 @@ function getTimeState(date: Date, language: Language) {
 }
 
 export default function Home() {
-  const [counts, setCounts] = useState<Counts>(() => { try { const saved = localStorage.getItem("qaza-counts"); return saved ? JSON.parse(saved) : emptyCounts; } catch { return emptyCounts; } });
-  // A saved plan is what marks this install as set up. Without one the reader
-  // has never told us anything, so the setup screen comes first.
-  const [targets, setTargets] = useState<Counts>(() => { try { const saved = localStorage.getItem("qaza-targets"); return saved ? JSON.parse(saved) : defaultTargets; } catch { return defaultTargets; } });
-  const [profile, setProfile] = useState<Profile | null>(() => { try { const saved = localStorage.getItem("qaza-profile"); return saved ? JSON.parse(saved) : null; } catch { return null; } });
-  // A saved profile is what marks this install as set up.
-  const [showSetup, setShowSetup] = useState(() => !localStorage.getItem("qaza-profile"));
+  // The record now belongs to an account rather than to this browser, so it
+  // starts empty and is filled in once the session is known.
+  const [counts, setCounts] = useState<Counts>(emptyCounts);
+  const [targets, setTargets] = useState<Counts>(defaultTargets);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [showSetup, setShowSetup] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  // Distinguishes "not signed in" from "not yet known", which decides whether
+  // the sign-up panel or a loading line is shown.
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [recordLoaded, setRecordLoaded] = useState(false);
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem("qaza-language") as Language) || "en");
   const [activeView, setActiveView] = useState<"today" | "overview" | "stats">("today");
   const [history, setHistory] = useState<History>(() => { try { const saved = localStorage.getItem("qaza-history"); return saved ? JSON.parse(saved) : {}; } catch { return {}; } });
@@ -78,10 +100,67 @@ export default function Home() {
   const [now, setNow] = useState(() => new Date());
   const t = copy[language];
   useEffect(() => { const timer = window.setInterval(() => setNow(new Date()), 60000); return () => window.clearInterval(timer); }, []);
-  useEffect(() => { localStorage.setItem("qaza-counts", JSON.stringify(counts)); }, [counts]);
-  useEffect(() => { localStorage.setItem("qaza-history", JSON.stringify(history)); }, [history]);
-  useEffect(() => { if (!showSetup) localStorage.setItem("qaza-targets", JSON.stringify(targets)); }, [targets, showSetup]);
   useEffect(() => { localStorage.setItem("qaza-language", language); }, [language]);
+  // Resume an existing session on load. A 401 here is the ordinary case for a
+  // first visit, not an error worth showing.
+  useEffect(() => { me().then(({ user: found }) => setUser(found)).catch(() => undefined).finally(() => setSessionChecked(true)); }, []);
+
+  // Pull this account's record, once per sign-in.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    setRecordLoaded(false);
+    getState().then(async (remote) => {
+      if (cancelled) return;
+      if (remote.profile) {
+        setProfile(remote.profile);
+        setTargets((remote.targets as Counts) ?? defaultTargets);
+        setCounts((remote.counts as Counts) ?? emptyCounts);
+        setHistory((remote.history as History) ?? {});
+        setShowSetup(false);
+      } else {
+        // Nothing on the server yet. If this browser still holds a record from
+        // before accounts existed, carry it up rather than silently leaving the
+        // reader with an empty ledger and their old numbers stranded.
+        const local = readLegacyRecord();
+        if (local) {
+          setProfile(local.profile);
+          setTargets(local.targets);
+          setCounts(local.counts);
+          setHistory(local.history);
+          setShowSetup(false);
+          setNotice(t.importedLocal);
+          await putState(local).catch(() => undefined);
+          clearLegacyRecord();
+        } else {
+          setShowSetup(true);
+        }
+      }
+      if (!cancelled) setRecordLoaded(true);
+    }).catch(() => { if (!cancelled) setRecordLoaded(true); });
+    return () => { cancelled = true; };
+  }, [user]);
+
+  // Persist changes. Held back until the record has loaded, otherwise the
+  // empty defaults would race the fetch and overwrite the account.
+  const saveTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (!user || !recordLoaded || showSetup) return;
+    if (saveTimer.current) window.clearTimeout(saveTimer.current);
+    saveTimer.current = window.setTimeout(() => {
+      putState({ profile, targets, counts, history }).catch(() => setNotice(t.syncFailed));
+    }, 600);
+    return () => { if (saveTimer.current) window.clearTimeout(saveTimer.current); };
+  }, [user, recordLoaded, showSetup, profile, targets, counts, history]);
+
+  const signOutNow = async () => {
+    await logOut().catch(() => undefined);
+    // Drop everything in memory so the next person to sign in on this browser
+    // cannot see the previous account's numbers.
+    setUser(null); setRecordLoaded(false); setProfile(null); setCounts(emptyCounts);
+    setTargets(defaultTargets); setHistory({}); setShowSetup(false); setActiveView("today"); setNotice(null);
+  };
+
   const timeState = getTimeState(now, language);
   // The clock decides unless the reader has explicitly chosen.
   const isNight = themeOverride ? themeOverride === "night" : timeState.isNight;
@@ -93,7 +172,7 @@ export default function Home() {
       // Only record a change that actually happened — pressing minus at zero
       // must not write a phantom entry into the history.
       if (next !== current[key]) {
-        const day = new Date().toISOString().slice(0, 10);
+        const day = localDay(new Date());
         setHistory((log) => {
           const forDay = { ...(log[day] ?? {}) };
           forDay[key] = Math.max(0, (forDay[key] ?? 0) + delta);
@@ -112,9 +191,12 @@ export default function Home() {
   const resetToday = () => { setCounts(Object.fromEntries(Object.keys(emptyCounts).map((key) => [key, 0])) as Counts); setHistory({}); setNotice(t.cleared); };
 
   return <main className={`site-shell ${isNight ? "night" : "day"}`} id="top">
-    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><img className="brand-logo" src="/qazotrack-logo.png" alt="" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation"><button className={activeView === "today" ? "chip active" : "chip"} onClick={() => setActiveView("today")}>{t.today}</button><button className={activeView === "overview" ? "chip active" : "chip"} onClick={() => setActiveView("overview")}>{t.overview}</button><button className={activeView === "stats" ? "chip active" : "chip"} onClick={() => setActiveView("stats")}>{t.stats}</button><button className="nav-cta" onClick={() => setShowSetup(true)}>{t.adjust} <ArrowRight size={14} /></button><div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div><button className="icon-button" onClick={toggleTheme} aria-label="Toggle colour theme" aria-pressed={isNight}>{isNight ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}</button></nav></header>
+    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><img className="brand-logo" src="/qazotrack-logo.png" alt="" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation">{user && <><button className={activeView === "today" ? "chip active" : "chip"} onClick={() => setActiveView("today")}>{t.today}</button><button className={activeView === "overview" ? "chip active" : "chip"} onClick={() => setActiveView("overview")}>{t.overview}</button><button className={activeView === "stats" ? "chip active" : "chip"} onClick={() => setActiveView("stats")}>{t.stats}</button><button className="nav-cta" onClick={() => setShowSetup(true)}>{t.adjust} <ArrowRight size={14} /></button></>}<div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div>{user && <div className="account-control"><span className="account-email" title={user.email}>{user.email}</span><button className="chip" onClick={signOutNow}>{t.signOut}</button></div>}<button className="icon-button" onClick={toggleTheme} aria-label="Toggle colour theme" aria-pressed={isNight}>{isNight ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}</button></nav></header>
     <section className="visual-stage"><div className="hero container"><div className="hero-copy"><h1 className="display">{t.heroTitle}</h1><p className="prose">{t.heroBody}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.countPrayer} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={() => setNotice(t.private)}>{t.howItWorks} <ChevronRight size={15} /></button></div></div><div className="hero-visual-wrap"><div id="hero-visual" className="gradient-visual"><div className="day-arc" aria-hidden="true"><span className="sun-marker" style={{ "--sun-progress": timeState.progress } as React.CSSProperties} /></div><SolarSystem /><div className="sun-status"><span className="sun-kicker">{t.now} · {timeState.formatted}</span><strong>{t.prayerTime.replace("{name}", t.prayerNames[timeState.current.key])}</strong><span>{timeState.label} · {t.local}</span></div><span className="gradient-caption">{isNight ? t.sunSettling : t.steady}</span></div><div className="stat-stack"><div><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></div></div></div><div className="intro-band"><div className="container intro-grid"><div><p className="intro-copy">{t.intro}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.openLedger} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={() => setShowSetup(true)}>{t.adjustPlan} <Settings2 size={15} /></button></div></div><p className="trust-line"><span className="trust-dot" />{t.trust}</p></div></div></section>
-    {showSetup ? <Setup profile={profile} t={t} firstRun={!localStorage.getItem("qaza-profile")} onCancel={() => setShowSetup(false)} onSave={(nextProfile, nextTargets) => { setProfile(nextProfile); setTargets(nextTargets); localStorage.setItem("qaza-profile", JSON.stringify(nextProfile)); localStorage.setItem("qaza-targets", JSON.stringify(nextTargets)); setShowSetup(false); setNotice(t.setupSaved); }} /> :
+    {!sessionChecked ? <section className="ledger-band"><div className="container"><p className="caption">{t.loadingAccount}</p></div></section> :
+    !user ? <Auth t={t} onAuthed={setUser} /> :
+    !recordLoaded ? <section className="ledger-band"><div className="container"><p className="caption">{t.loadingAccount}</p></div></section> :
+    showSetup ? <Setup profile={profile} t={t} firstRun={!profile} onCancel={() => setShowSetup(false)} onSave={(nextProfile, nextTargets) => { setProfile(nextProfile); setTargets(nextTargets); setShowSetup(false); setNotice(t.setupSaved); putState({ profile: nextProfile, targets: nextTargets, counts, history }).catch(() => setNotice(t.syncFailed)); }} /> :
     <section className="ledger-band"><div className="container">{activeView === "today" ? <><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; const progress = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0; const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--delay": `${index * 48}ms` } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.current.key === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></> : activeView === "stats" ? <Stats counts={counts} targets={targets} totals={totals} history={history} t={t} /> : <Overview counts={counts} targets={targets} totals={totals} t={t} />}</div></section>
     }
     <footer className="site-footer container"><span>QazoTrack · {t.personal}</span><span>{t.footer}</span></footer>
@@ -133,8 +215,83 @@ export default function Home() {
  * The estimate updates live as the form becomes valid, so the reader sees what
  * their answers imply before committing to them.
  */
+/**
+ * Reads a record left in localStorage by the versions of this app that had no
+ * accounts, so an existing reader does not lose their work on the way in.
+ */
+function readLegacyRecord() {
+  try {
+    const profile = localStorage.getItem("qaza-profile");
+    if (!profile) return null;
+    const read = (key: string, fallback: unknown) => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
+    return {
+      profile: JSON.parse(profile) as Profile,
+      targets: read("qaza-targets", defaultTargets) as Counts,
+      counts: read("qaza-counts", emptyCounts) as Counts,
+      history: read("qaza-history", {}) as History,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearLegacyRecord() {
+  for (const key of ["qaza-profile", "qaza-targets", "qaza-counts", "qaza-history"]) localStorage.removeItem(key);
+}
+
+/**
+ * Sign-up and sign-in.
+ *
+ * One form serves both, because they take the same two fields and differ only
+ * in what the server does with them. It is a real <form>, so Enter submits and
+ * a password manager can recognise the pair.
+ */
+function Auth({ t, onAuthed }: { t: Copy; onAuthed: (user: User) => void }) {
+  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<ApiErrorCode | null>(null);
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { user } = mode === "signup" ? await signUp(email, password) : await logIn(email, password);
+      onAuthed(user);
+    } catch (problem) {
+      setError(problem instanceof ApiError ? problem.code : "badRequest");
+      setBusy(false);
+    }
+  };
+
+  return <section className="ledger-band"><div className="container">
+    <div className="section-intro"><div><p className="label">{t.accountLabel}</p><h2 className="h2">{mode === "signup" ? t.signUpTitle : t.logInTitle}</h2></div><p className="caption section-note">{t.accountBody}</p></div>
+
+    <form className="prayer-ledger" onSubmit={submit}>
+      <div className="setup-row">
+        <div><h3>{t.email}</h3></div>
+        <div className="setup-field"><input className="setup-input setup-email" type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} aria-label={t.email} /></div>
+      </div>
+      <div className="setup-row">
+        <div><h3>{t.password}</h3><span className="caption">{t.passwordHint}</span></div>
+        <div className="setup-field"><input className="setup-input setup-email" type="password" autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={8} required value={password} onChange={(event) => setPassword(event.target.value)} aria-label={t.password} /></div>
+      </div>
+      <div className="ledger-footer">
+        <span className="caption" role="status" aria-live="polite">{error ? t.errors[error] : busy ? t.authWorking : ""}</span>
+        <div className="hero-actions">
+          <button type="button" className="btn btn-secondary" onClick={() => { setMode(mode === "signup" ? "login" : "signup"); setError(null); }}>{mode === "signup" ? t.haveAccount : t.noAccount}</button>
+          <button type="submit" className="btn btn-primary" disabled={busy}>{mode === "signup" ? t.signUp : t.logIn} <ArrowRight size={16} /></button>
+        </div>
+      </div>
+    </form>
+  </div></section>;
+}
+
 function Setup({ profile, t, firstRun, onSave, onCancel }: { profile: Profile | null; t: Copy; firstRun: boolean; onSave: (profile: Profile, targets: Counts) => void; onCancel: () => void }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDay(new Date());
   const [birthDate, setBirthDate] = useState(profile?.birthDate ?? "");
   const [gender, setGender] = useState<"male" | "female">(profile?.gender ?? "male");
   const [startPraying, setStartPraying] = useState(profile?.startPrayingDate ?? "");
@@ -232,7 +389,7 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
   const days = Array.from({ length: 30 }, (_, index) => {
     const date = new Date(today);
     date.setDate(date.getDate() - (29 - index));
-    const key = date.toISOString().slice(0, 10);
+    const key = localDay(date);
     const entry = history[key] ?? {};
     return { key, label: `${date.getDate()}`, total: prayerMeta.reduce((sum, p) => sum + (entry[p.key] ?? 0), 0) };
   });
@@ -254,6 +411,8 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
       <div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div>
       <div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div>
     </div>
+
+    <ProgressOverTime history={history} t={t} />
 
     <div className="stats-grid">
       <section className="stats-card">
@@ -289,13 +448,79 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
         <div className="stats-figures">
           <div><span className="figure">{perDay > 0 ? Math.round(perDay * 10) / 10 : "—"}</span><span className="caption">{t.perDay}</span></div>
           <div>
-            <span className="figure">{totals.remaining === 0 ? t.done : finish ? finish.toISOString().slice(0, 10) : "—"}</span>
+            <span className="figure">{totals.remaining === 0 ? t.done : finish ? localDay(finish) : "—"}</span>
             <span className="caption">{totals.remaining === 0 ? t.projected : finish ? `${t.projected} · ${t.atThisPace.toLowerCase()}` : t.noProjection}</span>
           </div>
         </div>
       </section>
     </div>
   </div>;
+}
+
+
+/**
+ * Cumulative prayers made up, from the first recorded day to today.
+ *
+ * The y-axis is scaled to what has actually been made up rather than to the
+ * whole backlog. Against a five-figure target the curve would be a flat line
+ * on the floor and would say nothing; this way the shape of the reader's own
+ * effort is legible, and the figures beside it keep the scale honest.
+ *
+ * x is spaced by real elapsed days, not by entry index, so a gap in the record
+ * reads as a gap in time rather than being silently compressed away.
+ */
+function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
+  const dayTotals = Object.entries(history)
+    .map(([day, entry]) => [day, prayerMeta.reduce((sum, p) => sum + (entry[p.key] ?? 0), 0)] as const)
+    .filter(([, total]) => total > 0)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  if (dayTotals.length < 2) {
+    return <section className="stats-card stats-overtime">
+      <p className="label">{t.overTime}</p>
+      <p className="caption stats-empty">{t.overTimeEmpty}</p>
+    </section>;
+  }
+
+  const dayMs = 86400000;
+  const start = Date.parse(dayTotals[0][0]);
+  const end = Math.max(Date.parse(dayTotals[dayTotals.length - 1][0]), Date.parse(localDay(new Date())));
+  const span = Math.max(1, Math.round((end - start) / dayMs));
+
+  let running = 0;
+  const points = dayTotals.map(([day, total]) => {
+    running += total;
+    return { x: Math.round((Date.parse(day) - start) / dayMs) / span, y: running };
+  });
+  const peak = running;
+
+  const W = 600;
+  const H = 150;
+  const PAD = 8;
+  const px = (x: number) => PAD + x * (W - PAD * 2);
+  const py = (y: number) => H - PAD - (peak > 0 ? y / peak : 0) * (H - PAD * 2);
+
+  // Start the line on the floor the day before the first entry, so the curve
+  // rises from zero rather than appearing to begin mid-air.
+  const coords = [`${PAD},${H - PAD}`, ...points.map((pt) => `${px(pt.x)},${py(pt.y)}`)];
+  // Carry the last value flat to today, which is where the axis ends.
+  const lastX = px(points[points.length - 1].x);
+  if (lastX < W - PAD) coords.push(`${W - PAD},${py(peak)}`);
+  const line = coords.join(" ");
+  const area = `${line} ${W - PAD},${H - PAD}`;
+
+  return <section className="stats-card stats-overtime">
+    <div className="stats-overtime-head">
+      <p className="label">{t.overTime}</p>
+      <p className="caption">{dayTotals[0][0]} · {peak} {t.total}</p>
+    </div>
+    <svg className="stats-line" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" role="img" aria-label={`${t.overTime}: ${peak}`}>
+      <polygon className="stats-line-area" points={area} />
+      <polyline className="stats-line-path" points={line} />
+      <line className="stats-axis" x1="0" y1={H - PAD + 0.5} x2={W} y2={H - PAD + 0.5} />
+    </svg>
+    <p className="caption">{t.overTimeNote}</p>
+  </section>;
 }
 
 function SolarSystem() { return <div className="gradient-orbit solar-system" aria-hidden="true"><span className="orbit orbit-one"><i className="planet planet-one" /></span><span className="orbit orbit-two"><i className="planet planet-two" /></span><span className="orbit orbit-three"><i className="planet planet-three" /></span><span className="sun-core" /></div>; }

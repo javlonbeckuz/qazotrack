@@ -402,3 +402,71 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
 
 @media (max-width:980px) { .stats-grid { grid-template-columns:1fr; } }
 
+/* Progress over time: one wide card above the three summary cards. */
+.stats-overtime { margin-top:20px; gap:10px; }
+.stats-overtime-head { display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.stats-line { width:100%; height:150px; display:block; }
+.stats-line-path { fill:none; stroke:var(--accent); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.stats-line-area { fill:var(--accent); opacity:.12; stroke:none; }
+.site-shell.night .stats-line-area { opacity:.18; }
+
+/* ---------------------------------------------------------------------------
+   Mobile. The header carries three view chips, three language buttons and the
+   theme toggle; .top-nav had no flex-wrap, so on a phone that row overflowed
+   sideways and took the page with it. The existing order:3/order:4 rules only
+   mean anything once it wraps, so wrapping is what they were waiting for.
+   --------------------------------------------------------------------------- */
+@media (max-width:760px) {
+  .site-header { flex-wrap:wrap; row-gap:10px; padding-block:14px; min-height:0; }
+  .top-nav { flex-wrap:wrap; row-gap:8px; justify-content:flex-start; }
+}
+
+@media (max-width:560px) {
+  /* Charts keep their proportions but give back vertical space. */
+  .stats-line { height:120px; }
+  .stats-chart { height:78px; }
+  .stats-card { padding:16px 16px 18px; }
+  .stats-overtime-head { row-gap:4px; }
+
+  /* The name column was a fixed 74px, which squeezed the track on a narrow
+     screen; let it size to the longest prayer name instead. */
+  .stats-bar-row { grid-template-columns:auto 1fr auto; gap:10px; }
+  .stats-bar-value { font-size:14px; }
+
+  .setup-row { padding-inline:16px; }
+  .setup-date { min-width:0; flex:1 1 150px; }
+  .setup-field { justify-content:flex-start; width:100%; }
+}
+
+/* Nothing in this layout may scroll the page sideways. */
+html, body { overflow-x:hidden; }
+
+/* The display size has a rem floor, so on the narrowest phones (<=360px) it no
+   longer scales down with the viewport. Uzbek carries the longest single word
+   in the product — "namozlaringizni" — which at that floor is wider than a
+   320px column and would be clipped by the overflow guard above. Allow a break
+   rather than retuning the clamp: this only engages when a word genuinely
+   cannot fit, so nothing changes at any width where it already does. */
+.display, .h2 { overflow-wrap:break-word; }
+
+
+/* ---------------------------------------------------------------- accounts */
+
+/* The signed-in address sits beside the theme toggle. It is allowed to shrink
+   and ellipsis rather than push the nav into another row, since the address is
+   confirmation of who is signed in and not something to read closely. */
+.account-control { display:flex; align-items:center; gap:8px; min-width:0; }
+.account-email {
+  max-width:20ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-size:.78rem; letter-spacing:.01em; opacity:.72;
+}
+
+/* Email and password share the date field's shape so the sign-up form and the
+   setup form read as one family. */
+.setup-email { min-width:min(280px, 100%); flex:1 1 240px; }
+
+@media (max-width:760px) {
+  /* On a phone the address costs a whole row for information the reader
+     already knows; the Sign out control is what has to stay reachable. */
+  .account-email { display:none; }
+}

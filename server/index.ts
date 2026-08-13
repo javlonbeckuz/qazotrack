@@ -2,6 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import path from "path";
 import { fileURLToPath } from "url";
+import { createApi } from "./api";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,14 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const server = createServer(app);
+
+  // The login throttle keys on req.ip, which behind a reverse proxy is the
+  // proxy's own address until the forwarded header is explicitly trusted.
+  if (process.env.TRUST_PROXY) app.set("trust proxy", process.env.TRUST_PROXY);
+
+  // Mounted ahead of the static handler and the SPA fallback, so an unknown
+  // /api path answers as JSON instead of returning index.html to a fetch().
+  app.use(createApi());
 
   // Serve static files from dist/public in production
   const staticPath =
