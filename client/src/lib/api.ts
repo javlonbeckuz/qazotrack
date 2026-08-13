@@ -1,5 +1,5 @@
 import { AppwriteException, ID, Permission, Role } from "appwrite";
-import { DATABASE_ID, RECORDS_TABLE_ID, account, tables } from "./appwrite";
+import { DATABASE_ID, RECORDS_TABLE_ID, SUGGESTIONS_TABLE_ID, account, tables } from "./appwrite";
 import type { Profile } from "./qaza";
 
 /**
@@ -215,6 +215,35 @@ export async function putState(state: Omit<RemoteState, "updatedAt">): Promise<v
         Permission.update(Role.user(user.user.id)),
         Permission.delete(Role.user(user.user.id)),
       ],
+    });
+  } catch (error) {
+    throw toApiError(error);
+  }
+}
+
+/**
+ * Sends a suggestion to the app's owner.
+ *
+ * It is written to a table the reader can add to and nobody can read back —
+ * not even the person who wrote it. That is deliberate: a static site has
+ * nowhere to keep a secret, so any address it could post to would be sitting in
+ * the JavaScript the browser downloads. Writing to a closed table keeps the
+ * owner's address out of the build entirely.
+ *
+ * `contact` is optional and is the sender's own address, given only if they
+ * want a reply.
+ */
+export async function sendSuggestion(message: string, contact: string): Promise<void> {
+  const text = message.trim();
+  if (text.length < 2) throw new ApiError("badRequest");
+  try {
+    await tables.createRow({
+      databaseId: DATABASE_ID,
+      tableId: SUGGESTIONS_TABLE_ID,
+      rowId: ID.unique(),
+      // No permissions: the row is write-only from the browser's side, readable
+      // only through the console or an API key, which the client never holds.
+      data: { message: text.slice(0, 4000), contact: contact.trim().slice(0, 254) || null },
     });
   } catch (error) {
     throw toApiError(error);

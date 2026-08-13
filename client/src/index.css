@@ -796,3 +796,78 @@ html, body { overflow-x:hidden; }
   .quick-sheet { width:auto; transform-origin:bottom center; }
   .quick-trigger { align-self:flex-end; }
 }
+
+/* ------------------------------------------------------------ full width */
+
+/* The layout was capped at 1280px and centred, which left a band of empty
+   surface either side on a wide screen. It now runs the full width with a
+   fluid gutter — the gutter is padding rather than a max-width, so the rules,
+   bands and grids reach the edges while the text inside keeps its own measure
+   and does not turn into 200-character lines. */
+.container {
+  width:100%; max-width:none; margin-inline:0;
+  padding-inline:clamp(20px,3.2vw,64px);
+}
+
+/* The hero visual was positioned against the old centred column. */
+#hero-visual { right:0; }
+.hero { gap:clamp(2rem,5vw,5rem); }
+.stat-stack { right:0; }
+
+/* Wide screens can carry more columns before the cards start to look stretched. */
+@media (min-width:1500px) {
+  .stats-grid { grid-template-columns:1.4fr 1fr 1fr; gap:18px; }
+  .overview-grid { gap:clamp(70px,7vw,140px); }
+}
+
+/* ------------------------------------------------------- mobile revisions */
+
+/* The add button becomes a circle on a phone: the label costs a third of the
+   width there, and the mark alone is the thing being reached for. The name is
+   still on the button for assistive tech. */
+@media (max-width:720px) {
+  .quick-trigger { padding:0; width:58px; height:58px; justify-content:center; border-radius:50%; }
+  .quick-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  .quick-add { right:16px; bottom:16px; left:auto; align-items:flex-end; }
+  .quick-sheet { width:min(320px,calc(100vw - 32px)); transform-origin:bottom right; }
+}
+
+@media (max-width:720px) {
+  .container { padding-inline:18px; }
+  /* Four columns of guide on a phone is four unreadable columns. */
+  .how-steps { grid-template-columns:1fr; gap:22px; }
+  .how-band { padding:52px 0 58px; }
+  /* The meter's two ends stack rather than squeeze. */
+  .meter-head { flex-direction:column; align-items:flex-start; gap:4px; }
+  .meter-foot { flex-direction:column; gap:2px; }
+  .stats-grid { grid-template-columns:1fr; }
+  /* The sheet's rows need a comfortable target more than they need tight rhythm. */
+  .quick-list li { padding:12px 2px; gap:8px; }
+  .quick-act { width:34px; height:34px; }
+}
+
+/* ------------------------------------------------------------ suggestions */
+
+.ideas-band { background:var(--surface-band); border-top:1px solid var(--rule); padding:66px 0 72px; }
+.ideas-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(2rem,6vw,7rem); align-items:start; }
+.ideas-note { display:block; max-width:44ch; margin-top:14px; }
+.ideas-form { display:flex; flex-direction:column; gap:12px; }
+.ideas-input {
+  width:100%; padding:13px 15px; border:1px solid var(--rule); border-radius:var(--radius);
+  background:var(--surface-base); color:var(--text-ink);
+  font:400 16px/1.5 Inter,sans-serif; resize:vertical;
+  transition:border-color var(--dur) var(--ease-out);
+}
+.ideas-input:focus { outline:none; border-color:var(--accent); }
+.ideas-input::placeholder { color:var(--text-muted); }
+.ideas-row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.ideas-contact { flex:1 1 220px; width:auto; }
+.ideas-status { min-height:1.4em; }
+.site-shell.night .ideas-input { background:var(--surface-chip); }
+
+@media (max-width:900px) { .ideas-grid { grid-template-columns:1fr; gap:28px; } }
+@media (max-width:720px) {
+  .ideas-band { padding:48px 0 54px; }
+  .ideas-row { flex-direction:column; align-items:stretch; }
+  .ideas-row .btn { justify-content:center; }
+}

@@ -21,6 +21,7 @@ if (!endpoint || !projectId) {
 
 export const DATABASE_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID ?? "qazotrack";
 export const RECORDS_TABLE_ID = import.meta.env.VITE_APPWRITE_RECORDS_TABLE_ID ?? "records";
+export const SUGGESTIONS_TABLE_ID = import.meta.env.VITE_APPWRITE_SUGGESTIONS_TABLE_ID ?? "suggestions";
 
 const client = new Client().setEndpoint(endpoint).setProject(projectId);
 
