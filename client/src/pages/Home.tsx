@@ -304,7 +304,7 @@ export default function Home() {
     <section className="ledger-band"><div className="container">{activeView === "today" ? <><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}%</span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; const progress = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0; const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--delay": `${index * 48}ms` } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.at(timeState.times[prayer.key]) ? `${timeState.at(timeState.times[prayer.key])} · ` : ""}{timeState.current === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button ghost" onClick={() => addMissed(prayer.key)} aria-label={`${t.addMissed} ${name}`} title={`${t.addMissed} · ${name}`}><Minus size={15} strokeWidth={1.6} /><span className="step-plus">+</span></button><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></> : activeView === "stats" ? <Stats counts={counts} targets={targets} totals={totals} history={history} t={t} /> : <Overview counts={counts} targets={targets} totals={totals} t={t} />}</div></section>
     }
     <HowItWorks t={t} />
-    {user && <QuickAdd counts={counts} t={t} onCount={(key) => changeCount(key, 1)} onMissed={addMissed} />}
+    <QuickAdd counts={counts} t={t} enabled={!!user} onCount={(key) => changeCount(key, 1)} onMissed={addMissed} onLocked={() => goToAuth("signup")} />
     <footer className="site-footer container"><span>QazoTrack · {t.personal}</span><span>{t.footer}</span></footer>
   </main>;
 }
@@ -350,13 +350,14 @@ function clearLegacyRecord() {
  *
  * Counting a prayer is the one thing a reader comes back to do, and until now
  * it meant scrolling to the ledger and finding the right row. This keeps it one
- * press away from anywhere on the page.
+ * press away from anywhere on the page, on every view and at every scroll
+ * position.
  *
- * It only appears once there is an account, because there is no count to add to
- * before that, and a floating call to action on the landing page would be noise
- * rather than a tool.
+ * It is present signed out too. There is no count to add to yet, so pressing it
+ * opens the account form rather than the sheet — the same route every other
+ * gated control takes, so the button is never simply inert.
  */
-function QuickAdd({ counts, t, onCount, onMissed }: { counts: Counts; t: Copy; onCount: (key: PrayerKey) => void; onMissed: (key: PrayerKey) => void }) {
+function QuickAdd({ counts, t, enabled, onCount, onMissed, onLocked }: { counts: Counts; t: Copy; enabled: boolean; onCount: (key: PrayerKey) => void; onMissed: (key: PrayerKey) => void; onLocked: () => void }) {
   const [open, setOpen] = useState(false);
   // Which button was last pressed, so the tick lands on that button rather than
   // on the row — the two actions move the number in opposite directions and the
@@ -393,7 +394,7 @@ function QuickAdd({ counts, t, onCount, onMissed }: { counts: Counts; t: Copy; o
 
   return (
     <div className={`quick-add ${open ? "is-open" : ""}`} ref={root}>
-      {open && (
+      {open && enabled && (
         <div className="quick-sheet" role="dialog" aria-label={t.quickAddTitle}>
           <div className="quick-head">
             <h3>{t.quickAddTitle}</h3>
@@ -434,7 +435,7 @@ function QuickAdd({ counts, t, onCount, onMissed }: { counts: Counts; t: Copy; o
       )}
       <button
         className="quick-trigger"
-        onClick={() => setOpen(!open)}
+        onClick={() => { if (!enabled) { onLocked(); return; } setOpen(!open); }}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={open ? t.quickAddClose : t.quickAdd}
