@@ -52,6 +52,20 @@ reads a token follows automatically.
 | `--rule-strong` | `#9da6b0` | `#6a707a` | Emphasised edges |
 | `--navy` | `#1b2951` | `#7aa7e8` | Brand navy; also the logo mark |
 | `--navy-light` | `#3d5a99` | `#9cb6e4` | The lighter blue |
+| `--danger` | `#a3312a` | `#f0928a` | Backing out: cancel, reset, discard |
+| `--danger-hover` | `#8a2822` | `#f7aaa3` | Hover on the above |
+| `--danger-soft` | `rgba(163,49,42,.07)` | `rgba(240,146,138,.12)` | The rest-state fill of `.btn-danger` |
+
+**`--danger` is a tint, never a fill.** It was added because the palette had no
+answer for "back out of this": Cancel wore the same grey chip as "Already have
+an account?", so two controls read as equals when only one of them discards
+work. `.btn-danger` is outlined with a soft wash at rest and a firmer wash on
+hover — it never becomes a solid red slab. Nothing in this app should shout at
+somebody counting prayers they owe. It clears 7.0:1 on white and 8.4:1 on the
+night ground, so it is safe as text at either state.
+
+`.text-button.is-danger` is the same signal at text weight, used by "Reset
+today" in the ledger foot.
 
 **The accent inverts direction between states.** On white it is a deep navy
 and hover *darkens*; on the dark ground it is a light blue and hover *lifts*.

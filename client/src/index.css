@@ -1186,3 +1186,91 @@ html, body { overflow-x:clip; }
 @media (max-width:720px) {
   .ideas-row .ideas-contact { flex:0 0 auto; }
 }
+
+/* ==========================================================================
+   Actions: one size, and a colour for backing out
+
+   Two problems, both visible on the setup form where "Kuzatishni boshlash" and
+   "Bekor qilish" sit side by side.
+
+   SIZE. `.btn` carried `min-height:50px` with `padding:14px 28px` and an 18px
+   icon gap, while the suggestion row had already been brought down to 46px and
+   the chips and step buttons sit lower again. Two controls in one row read as
+   a pair only if they are the same height, so every `.btn` is 46px now and the
+   gap is tightened to 10px — at 18px the icon floated away from its own label
+   and made the pair look like different components.
+
+   COLOUR. The palette is navy and one light blue, and it had no answer for
+   "back out of this". Cancel was the same grey chip as "Already have an
+   account?", so the two read as equals when only one of them discards work.
+   `--danger` is that answer: a deep brick that holds against both grounds
+   (7.0:1 on white, 8.4:1 on the night ground) and does not turn the page into
+   a warning. It stays a TINT — soft fill at rest, firmer on hover, never a
+   solid red slab. Nothing in this app should shout at somebody counting
+   prayers they owe.
+   ========================================================================== */
+
+:root {
+  --danger: #a3312a;
+  --danger-hover: #8a2822;
+  --danger-soft: rgba(163, 49, 42, .07);
+}
+
+.site-shell.night {
+  --danger: #f0928a;
+  --danger-hover: #f7aaa3;
+  --danger-soft: rgba(240, 146, 138, .12);
+}
+
+/* One height for every button, so any two of them line up wherever they meet. */
+.btn { min-height:46px; padding:0 24px; gap:10px; }
+
+/* Backing out: cancel, reset, discard. Outlined and tinted, never filled —
+   it is the quieter of the two controls in its row, and it should look it. */
+.btn-danger {
+  background:var(--danger-soft);
+  border-color:color-mix(in srgb, var(--danger) 34%, transparent);
+  color:var(--danger);
+}
+.btn-danger:hover {
+  background:color-mix(in srgb, var(--danger) 13%, transparent);
+  border-color:var(--danger);
+  color:var(--danger-hover);
+}
+/* The arrow on a primary travels forward; a cancel's mark does not travel. */
+.btn-danger:hover svg { transform:none; }
+
+/* The same signal at text weight, for "Reset today" in the ledger foot. */
+.text-button.is-danger { color:var(--danger); }
+.text-button.is-danger:hover { color:var(--danger-hover); }
+.site-shell.night .text-button.is-danger { color:var(--danger); }
+
+/* On a phone the two actions in a form's foot were sized to their own labels,
+   so they stacked at different widths and the longer one broke over two lines —
+   "Kuzatishni / boshlash" above a short "Bekor qilish". A pair of choices reads
+   as a pair only if they are the same shape, so both go full width, centred,
+   and are not allowed to wrap. DOM order is left alone: it is also the focus
+   order, and the primary already comes last. */
+@media (max-width:560px) {
+  .ledger-footer { flex-direction:column; align-items:stretch; gap:12px; padding-block:14px; }
+  .ledger-footer > .caption { text-align:left; }
+  .ledger-footer .hero-actions { flex-direction:column; align-items:stretch; width:100%; gap:10px; margin-top:0; }
+  .ledger-footer .hero-actions .btn { width:100%; justify-content:center; white-space:nowrap; }
+}
+
+/* ---------------------------------------------------- controls, one rhythm
+
+   Measured across the page, controls that share a row did not share a height:
+   the header ran a 31px language group beside a 38px chip beside a 35px theme
+   toggle, and every setup row put a 38px chip next to a 44px input. Three
+   near-misses in one line is what makes a layout look assembled rather than
+   drawn — the eye reads the ragged edge long before it reads the labels.
+
+   Two heights now, and only two: 38px for the header's small controls, 44px
+   for anything sharing a row with a form field. Buttons stay at 46px, which is
+   the one step up and is never mixed into either row. */
+
+.setup-field .chip { min-height:44px; padding-inline:16px; }
+
+.icon-button { width:38px; height:38px; }
+.language-switcher { min-height:38px; align-items:center; }
