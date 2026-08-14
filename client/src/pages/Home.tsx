@@ -458,7 +458,11 @@ function SectionNav({ active, t, onGo, onAdjust }: {
             </li>
           ))}
         </ol>
-        <button className="section-adjust" onClick={onAdjust}>{t.adjust} <Settings2 size={14} /></button>
+        {/* The label is a <span> so the phone rule that hides it has something
+            to match — as a bare text node it stayed, wrapped onto two lines and
+            squeezed the index beside it. aria-label carries the name once the
+            words are gone. */}
+        <button className="section-adjust" onClick={onAdjust} aria-label={t.adjust} title={t.adjust}><span>{t.adjust}</span> <Settings2 size={14} /></button>
       </div>
     </nav>
   );

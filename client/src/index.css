@@ -1007,3 +1007,141 @@ html, body { overflow-x:clip; }
   .stats-overtime.is-plot .stats-line { height:190px; }
   .stats-callout { font-size:12px; }
 }
+
+/* ==========================================================================
+   Phones: the drawn parts of the page, unstacked
+
+   Everything below is a fix to something that only goes wrong once the
+   viewport is narrow. Each block says which.
+   ========================================================================== */
+
+/* ------------------------------------------------ the hero's three layers
+
+   The hero visual, the orrery filling it and the three figures were all
+   absolutely positioned into the same box. On a desktop that box is 600px wide
+   and the scene is nudged left to leave the figures a clear corner; at 390px
+   there is no clear corner left, so the figures landed on the sun and the
+   planets — "16 410" was read through a rendered sphere and its caption ran
+   under the floating add button.
+
+   The visual was also taller than the wrapper holding it (470px inside 430px),
+   and `.intro-band` sits at a higher z-index, so the bottom of the scene and
+   the caption at its foot were painted over by the band below.
+
+   Below 800px the three become a sequence instead of a stack: the visual takes
+   its own height in flow, and the figures sit under it. Nothing overlaps
+   because nothing is positioned any more. */
+
+@media (max-width:800px) {
+  .hero-visual-wrap { height:auto; display:block; }
+
+  /* In flow, so the wrapper grows with it and the prayer-time card and the
+     caption at its foot stay inside the hero. The three earlier rules that
+     positioned this are all (1,1,0) like this one — source order is what
+     settles it, so this block has to stay last in the file. */
+  .hero-visual-wrap #hero-visual,
+  #hero-visual.gradient-visual {
+    position:relative; inset:auto;
+    width:100%; height:clamp(300px,78vw,360px);
+  }
+
+  /* The ledger's own two-up shape, so the hero figures and the summary rail
+     under them read as the same kind of thing. */
+  .stat-stack {
+    position:static; inset:auto; width:auto;
+    display:grid; grid-template-columns:1fr 1fr; gap:18px 14px;
+    margin-top:28px;
+  }
+  .stat-stack > div { padding:5px 0 5px 14px; }
+  .stat-stack > div:nth-child(3) { grid-column:1 / -1; }
+  /* The 14ch cap was there to keep the caption off the scene behind it. There
+     is nothing behind it now. */
+  .stat-stack .caption { max-width:none; }
+  .stat-stack .figure { font-size:clamp(1.9rem,7vw,2.4rem); }
+}
+
+/* ------------------------------------------------------- the section index
+
+   `.section-adjust span` was written for a label that is a bare text node, so
+   it never matched: the words stayed, wrapped onto two lines, and pushed the
+   index into a sideways scroll that clipped "Stats" to "Stat" with nothing to
+   say it could be scrolled. The label is a <span> now (see SectionNav) and the
+   rule hides it for real; the entries are tightened so all three fit besides. */
+
+@media (max-width:720px) {
+  .section-link { padding:14px 10px 12px; gap:6px; }
+  /* Down to the icon alone, so it needs its hit area back: 14px of glyph plus
+     13px all round is 40px square. The negative margin keeps the icon itself on
+     the gutter rather than the padding. */
+  .section-adjust { flex:none; gap:0; padding:13px; margin-right:-13px; }
+}
+
+/* ----------------------------------------------------------- ledger rows
+
+   Four controls at their desktop size took 166px of a 302px row, leaving the
+   name 118px — enough for the prayer name, but the time and target line under
+   it broke over three lines and drove the row to 183px tall. Trimming the
+   control's own gaps gives that back without making any target smaller than
+   the 32px minimum. */
+
+@media (max-width:560px) {
+  .prayer-row { gap:12px; }
+  /* Top-aligned: centred, the Arabic drifted down the row as the caption below
+     the name wrapped. */
+  .prayer-name { gap:12px; align-items:flex-start; }
+  .prayer-name .arabic { line-height:1.3; }
+  .prayer-row .caption { font-size:13px; }
+
+  /* Three 34px boxes and their gaps took 166px of a 304px row — over half of
+     it, for controls that are pressed one at a time. At 28px the set is 120px
+     and the name beside it gets its second line back. The row's own 22px of
+     padding above and below still carries each button past a comfortable
+     target; nothing here is smaller than the sheet's own 30px buttons. */
+  .counter-control { gap:6px; }
+  .counter-control .step-button { width:28px; height:28px; }
+  .counter-control .step-button svg { width:14px; height:14px; }
+  .counter-control .step-button > span { font-size:14px; }
+  .counter-control .step-button.ghost .step-plus { top:1px; right:3px; font-size:10px; }
+  .counter-control .row-figure { min-width:18px; font-size:15px; }
+}
+
+/* ---------------------------------------------------- the hero's day arc
+
+   `.day-arc` is a rotated ellipse the width of the whole visual, drawn on two
+   sides only, so on a desktop hero it reads as the sun's path across a wide
+   sky. At phone width the visual is barely wider than the orrery inside it, so
+   the same ellipse crosses the orbit rings and runs off both edges — a stray
+   line slicing the scene rather than an arc over it.
+
+   It carries no reading the page does not already give: the sun's position is
+   in the orrery itself, and the prayer and the time are named in the card
+   below it. So on a phone the scene stands alone. */
+
+@media (max-width:800px) {
+  .day-arc { display:none; }
+}
+
+/* ------------------------------------------------------ the suggestion form
+
+   `.ideas-contact` is `flex:1 1 220px`, written for a row. Below 720px
+   `.ideas-row` turns into a column — where flex-basis is the HEIGHT, not the
+   width — so the email field grew to 220px tall and then stretched further,
+   ending up the same size as the message box above it.
+
+   Fixing the basis in the column direction is the actual repair; the explicit
+   height keeps it one line high whichever way the row is running. The trimmed
+   padding takes both fields from 52px to 46px at every width, and the Send
+   button comes down with them so the pair still line up on a desktop. The 16px
+   text stays — Safari on iOS zooms the page for anything smaller in a focused
+   field. */
+
+.ideas-input { padding:11px 14px; }
+/* An input has nothing to resize; the declaration is inherited from the rule
+   the textarea shares with it. */
+.ideas-contact { flex:1 1 220px; height:46px; resize:none; }
+.ideas-form textarea.ideas-input { min-height:104px; }
+.ideas-row .btn { min-height:46px; padding-block:0; }
+
+@media (max-width:720px) {
+  .ideas-row .ideas-contact { flex:0 0 auto; }
+}
