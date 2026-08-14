@@ -21,6 +21,16 @@ export interface Profile {
   menstruationAvgDaysPerMonth: number;
   /** Optional exact maturity date, used instead of the estimate when known. */
   bulughOverride?: string | null;
+  /**
+   * The reader's own age at maturity, in lunar years, when they know it.
+   *
+   * Maturity is reached by a physical sign — ihtilam for a boy, the first hayd
+   * for a girl — which can arrive any time inside `BULUGH_RANGE`. Only the
+   * reader knows when that was, so it is asked for rather than assumed. Null
+   * means unknown or no sign reported, which is the `BULUGH_FALLBACK_YEARS`
+   * case below.
+   */
+  bulughAgeYears?: number | null;
 }
 
 export interface Breakdown {
@@ -36,8 +46,36 @@ export interface Breakdown {
   stillAccumulating: boolean;
 }
 
-/** Lunar years to maturity when the exact date is unknown. */
-export const BULUGH_YEARS: Record<Gender, number> = { male: 12, female: 9 };
+/**
+ * The window, in lunar years, in which maturity can be reached.
+ *
+ * Maturity (bulugh) is established by a physical sign: ihtilam for a boy, the
+ * first hayd for a girl. The sign cannot count before the lower bound — 12 for
+ * a boy, 9 for a girl — and if it has not appeared by the upper bound, maturity
+ * is held to have arrived anyway. Hence a range rather than one number.
+ */
+export const BULUGH_RANGE: Record<Gender, { min: number; max: number }> = {
+  male: { min: 12, max: 15 },
+  female: { min: 9, max: 15 },
+};
+
+/**
+ * Used when the reader does not know the age, or no sign arrived before the
+ * window closed. Fifteen lunar years is where Hanafi guidance fixes maturity in
+ * the absence of a sign, and it is the end of the range for both.
+ *
+ * This is the *later* end of the window on purpose, and it is the conservative
+ * choice for a reader rather than for the count: it does not manufacture a
+ * backlog for years nobody has said were owed. A reader who knows their sign
+ * came earlier says so, and the count starts from there.
+ */
+export const BULUGH_FALLBACK_YEARS = 15;
+
+/** Kept as an export because stored profiles predate the range. */
+export const BULUGH_YEARS: Record<Gender, number> = {
+  male: BULUGH_RANGE.male.min,
+  female: BULUGH_RANGE.female.min,
+};
 
 export const DEFAULT_MENSTRUATION_DAYS = 6;
 
@@ -93,10 +131,24 @@ export function addLunarYears(iso: string, years: number): string {
   throw new Error("Date outside the supported calendar range");
 }
 
+/**
+ * The age, in lunar years, that a profile's maturity is counted from.
+ *
+ * Clamped to the reader's own window rather than trusted: an age below the
+ * lower bound cannot be maturity whatever was entered, and one above the upper
+ * bound is the fallback case anyway.
+ */
+export function bulughAgeFor(profile: Profile): number {
+  const range = BULUGH_RANGE[profile.gender];
+  const given = profile.bulughAgeYears;
+  if (given == null || !Number.isFinite(given)) return BULUGH_FALLBACK_YEARS;
+  return Math.max(range.min, Math.min(range.max, Math.floor(given)));
+}
+
 /** Step 1 — the maturity date, or the reader's own if they gave one. */
 export function getBulughDate(profile: Profile): string {
   if (profile.bulughOverride) return profile.bulughOverride;
-  return addLunarYears(profile.birthDate, BULUGH_YEARS[profile.gender]);
+  return addLunarYears(profile.birthDate, bulughAgeFor(profile));
 }
 
 export type ValidationCode =
