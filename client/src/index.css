@@ -887,6 +887,32 @@ html, body { overflow-x:clip; }
 .site-credit a { color:inherit; text-decoration:none; border-bottom:1px solid var(--rule-strong); transition:color var(--dur) ease, border-color var(--dur) ease; }
 .site-credit a:hover { color:var(--accent); border-color:var(--accent); }
 
+/* The credit sits in the middle of the footer rather than at its right edge.
+   Three columns are what makes it centred against the whole footer instead of
+   against whatever is left over beside the line on the left; the third stays
+   empty and holds the balance.
+
+   `max-content` for the middle, not `auto`: `fr` takes every pixel of free
+   space, so an `auto` track between two of them is left at its min-content and
+   the credit broke over three lines. */
+.site-footer { display:grid; grid-template-columns:1fr max-content 1fr; align-items:center; }
+.site-credit { grid-column:2; }
+
+/* uno.web's mark. Sized in px rather than em: the footer runs at 12px and the
+   mark's own file notes its strokes are drawn for sizes at or above 16px, so
+   1em here would thin them to hairlines.
+
+   `inline-block` is not decoration. Tailwind's preflight sets `svg { display:
+   block }`, which put the mark on a line of its own and broke the credit over
+   three. */
+.uno-mark { display:inline-block; width:14px; height:14px; vertical-align:-2px; margin-right:5px; }
+
+@media (max-width:520px) {
+  /* Stacked, and centred with the credit rather than ranged left under it. */
+  .site-footer { grid-template-columns:1fr; justify-items:center; text-align:center; }
+  .site-credit { grid-column:1; }
+}
+
 /* A little air above the work area when a control scrolls to it, so the
    section heading is not flush against the top edge of the window. */
 #workspace { scroll-margin-top:18px; }

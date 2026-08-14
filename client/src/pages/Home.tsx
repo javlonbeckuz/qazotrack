@@ -380,10 +380,44 @@ export default function Home() {
       <span className="site-credit">
         {/* The year the build was made, not a hardcoded literal that quietly
             goes stale — BUILD_YEAR is stamped in at build time. */}
-        {t.builtBy} <a href="https://uno.web" target="_blank" rel="noopener noreferrer">uno.web</a> · {BUILD_YEAR}
+        {t.builtBy}{" "}
+        <a href="https://uno-web.appwrite.network/" target="_blank" rel="noopener noreferrer">
+          <UnoMark />uno.web
+        </a>{" "}
+        · {BUILD_YEAR}
       </span>
     </footer>
   </main>;
+}
+
+/**
+ * uno.web's mark, beside the credit.
+ *
+ * Inlined rather than loaded from their favicon, and the strokes take
+ * `currentColor` rather than the `prefers-color-scheme` rule the original file
+ * carries. That rule follows the operating system; this page has a night toggle
+ * of its own, so on a light OS with the toggle set to night the mark would have
+ * drawn Ink on a dark footer and vanished. `currentColor` follows the footer's
+ * own text, which is the same intent the original states — Ink on light, Paper
+ * on dark — reached by the one signal that is actually correct here.
+ *
+ * The geometry, the transform and the Signal bar are the brand's own, unchanged.
+ * Their file notes that #FF3B14 clears 3:1 on white and on black, so the bar is
+ * the one part that must not move with the theme.
+ */
+function UnoMark() {
+  return (
+    <svg viewBox="0 0 100 100" className="uno-mark" aria-hidden="true">
+      <g transform="translate(4.19 2.72) scale(0.946)">
+        <g stroke="currentColor" strokeWidth="12">
+          <line x1="4" y1="18" x2="48" y2="45" />
+          <line x1="4" y1="50" x2="48" y2="50" />
+          <line x1="4" y1="82" x2="48" y2="55" />
+        </g>
+        <rect x="44" y="37" width="52" height="26" fill="#FF3B14" />
+      </g>
+    </svg>
+  );
 }
 
 /**
