@@ -55,5 +55,7 @@ export default function CountUp({ value, className, suffix = "" }: { value: numb
 
   // Before the first frame, render the final value so the box is already the
   // right width and a stalled loop still leaves the number readable.
-  return <span ref={host} className={className}>{(shown ?? value).toLocaleString()}{suffix}</span>;
+  // The suffix gets its own element so a unit set beside a Playfair numeral can
+  // be given the interface sans — see `.figure-unit`.
+  return <span ref={host} className={className}>{(shown ?? value).toLocaleString()}{suffix && <span className="figure-unit">{suffix}</span>}</span>;
 }

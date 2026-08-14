@@ -380,6 +380,19 @@ button:focus-visible,a:focus-visible { outline:2px solid var(--accent); outline-
   text-shadow:none;
 }
 
+/* The percent sign, beside a Playfair numeral.
+ *
+ * Playfair's `%` is a display serif drawing: the bowls are small and set high,
+ * so against a lining figure it reads as a raised mark rather than as part of
+ * the number — "0" with something floating after it. Inter's is upright and
+ * drawn to the lining figures' height, which is what a percentage needs.
+ *
+ * Same size as the numeral on purpose. Setting it smaller fixes the height but
+ * reintroduces the same problem in the other direction: a unit that looks
+ * detached from its value. The letter-spacing is reset because the figure's own
+ * negative tracking is for digits, and it pulls the sign into the numeral. */
+.figure-unit { font-family:Inter,sans-serif; letter-spacing:0; }
+
 /* A lighter weight needs a little more size to hold the same presence. */
 .stat-stack .figure { font-size:clamp(2.5rem,3.4vw,3.05rem); line-height:.95; }
 .summary-rail .figure { font-size:clamp(2.3rem,3.1vw,2.85rem); line-height:.95; }
