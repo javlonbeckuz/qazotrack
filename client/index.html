@@ -8,6 +8,23 @@
     <link rel="icon" type="image/png" href="/qazotrack-logo.png" />
     <link rel="apple-touch-icon" href="/qazotrack-logo.png" />
     <title>QazoTrack — Steady progress</title>
+
+    <!-- Umami. The only third-party request the site makes at runtime: it
+         counts page views without cookies and without an identifier that
+         follows a reader between sites, which is what makes it tolerable on a
+         page that is otherwise about somebody's prayer record.
+
+         `defer` keeps it off the critical path — fetched while the document
+         parses, run after it — so a slow or blocked analytics host cannot hold
+         up the first paint. Nothing in the app reads it back, and it is a plain
+         script tag rather than an import so it stays out of the bundle and can
+         be removed by deleting these two lines.
+
+         No `integrity` hash: Umami ships this file from its own CDN and updates
+         it in place, so a pinned hash would silently stop the script the next
+         time they release. Self-hosting the tracker is the way to get the hash
+         back if that trade stops being acceptable. -->
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="72ae2497-ce04-4f97-b20f-c3c98e4307e2"></script>
   </head>
   <body>
     <div id="root"></div>
