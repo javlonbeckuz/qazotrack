@@ -148,58 +148,12 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-function vitePluginStorageProxy(): Plugin {
-  return {
-    name: "manus-storage-proxy",
-    configureServer(server: ViteDevServer) {
-      server.middlewares.use("/manus-storage", async (req, res) => {
-        const key = req.url?.replace(/^\//, "");
-        if (!key) {
-          res.writeHead(400, { "Content-Type": "text/plain" });
-          res.end("Missing storage key");
-          return;
-        }
-
-        const forgeBaseUrl = (process.env.BUILT_IN_FORGE_API_URL || "").replace(/\/+$/, "");
-        const forgeKey = process.env.BUILT_IN_FORGE_API_KEY;
-
-        if (!forgeBaseUrl || !forgeKey) {
-          res.writeHead(500, { "Content-Type": "text/plain" });
-          res.end("Storage proxy not configured");
-          return;
-        }
-
-        try {
-          const forgeUrl = new URL("v1/storage/presign/get", forgeBaseUrl + "/");
-          forgeUrl.searchParams.set("path", key);
-
-          const forgeResp = await fetch(forgeUrl, {
-            headers: { Authorization: `Bearer ${forgeKey}` },
-          });
-
-          if (!forgeResp.ok) {
-            res.writeHead(502, { "Content-Type": "text/plain" });
-            res.end("Storage backend error");
-            return;
-          }
-
-          const { url } = (await forgeResp.json()) as { url: string };
-          if (!url) {
-            res.writeHead(502, { "Content-Type": "text/plain" });
-            res.end("Empty signed URL");
-            return;
-          }
-
-          res.writeHead(307, { Location: url, "Cache-Control": "no-store" });
-          res.end();
-        } catch {
-          res.writeHead(502, { "Content-Type": "text/plain" });
-          res.end("Storage proxy error");
-        }
-      });
-    },
-  };
-}
+// vitePluginStorageProxy() was removed with the rest of the Manus leftovers. It
+// mounted /manus-storage in dev and signed requests to forge.manus.ai with
+// BUILT_IN_FORGE_API_KEY. Nothing in the app ever called it once the project
+// left Manus, and it was the only code that read that key — which was one of
+// the three credentials shipped inside QazoTrack-project.zip and exposed by it.
+// Storage now means Appwrite; see client/src/lib/appwrite.ts.
 
 // Two Manus editor plugins were removed when this project moved out of the
 // Manus workspace:
@@ -219,7 +173,7 @@ function vitePluginStorageProxy(): Plugin {
 // The account API used to be mounted here as dev middleware so that `npm run
 // dev` stayed one command on one port. Appwrite serves it now, so dev and
 // production talk to the same hosted backend and there is no local server.
-const plugins = [react(), tailwindcss(), vitePluginManusDebugCollector(), vitePluginStorageProxy()];
+const plugins = [react(), tailwindcss(), vitePluginManusDebugCollector()];
 
 export default defineConfig({
   // The footer credit shows the year the build was made. Stamping it here keeps
@@ -227,10 +181,11 @@ export default defineConfig({
   define: { __BUILD_YEAR__: JSON.stringify(String(new Date().getFullYear())) },
   plugins,
   resolve: {
+    // `@shared` and `@assets` are gone with the Manus leftovers — both pointed
+    // at directories that no longer exist, so an import through either would
+    // have failed at resolve time rather than falling back to anything.
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
   envDir: path.resolve(import.meta.dirname),
