@@ -525,13 +525,12 @@ html, body { overflow-x:clip; }
 
 /* ---------------------------------------------------------------- accounts */
 
-/* The signed-in address sits beside the theme toggle. It is allowed to shrink
-   and ellipsis rather than push the nav into another row, since the address is
-   confirmation of who is signed in and not something to read closely. */
+/* The signed-in reader's name sits beside the theme toggle. It is allowed to
+   shrink and ellipsis rather than push the nav into another row. */
 .account-control { display:flex; align-items:center; gap:8px; min-width:0; }
-.account-email {
+.account-name {
   max-width:20ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  font-size:.78rem; letter-spacing:.01em; opacity:.72;
+  font-size:.78rem; letter-spacing:.01em; opacity:.85;
 }
 
 /* Email and password share the date field's shape so the sign-up form and the
@@ -557,9 +556,12 @@ html, body { overflow-x:clip; }
 .password-toggle:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
 
 @media (max-width:760px) {
-  /* On a phone the address costs a whole row for information the reader
-     already knows; the Sign out control is what has to stay reachable. */
-  .account-email { display:none; }
+  /* The address used to be hidden here — it cost a whole row of a phone header
+     for a string the reader already knows. A name is a few characters and is
+     the point of showing anything at all, so it stays; the cap is what keeps it
+     from pushing Sign out onto its own line. An account with no name still
+     falls back to the address, which is why the cap is this tight. */
+  .account-name { max-width:11ch; }
 }
 
 /* ----------------------------------------------------- how-it-works band */

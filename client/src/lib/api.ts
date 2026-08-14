@@ -19,6 +19,7 @@ import type { Profile } from "./qaza";
 export type ApiErrorCode =
   | "emailInvalid"
   | "passwordShort"
+  | "nameMissing"
   | "emailTaken"
   | "credentialsWrong"
   | "rateLimited"
@@ -34,7 +35,14 @@ export class ApiError extends Error {
   }
 }
 
-export type User = { id: string; email: string; createdAt: string };
+/**
+ * `name` is Appwrite's own account field, not a column of ours — nothing in the
+ * database schema had to change to carry it. It is what the header shows, and
+ * it is empty for every account created before the sign-up form asked for one,
+ * so a reader of this type has to fall back to the address rather than assume
+ * there is a name.
+ */
+export type User = { id: string; name: string; email: string; createdAt: string };
 export type Counts = Record<string, number>;
 export type History = Record<string, Record<string, number>>;
 export type RemoteState = {
@@ -90,12 +98,16 @@ function toApiError(error: unknown): ApiError {
   return new ApiError("badRequest");
 }
 
-type Account = { $id: string; email: string; $createdAt: string };
+type Account = { $id: string; name: string; email: string; $createdAt: string };
 const publicUser = (user: Account): User => ({
   id: user.$id,
+  name: user.name ?? "",
   email: user.email,
   createdAt: user.$createdAt,
 });
+
+/** Appwrite's own ceiling for the account name. */
+const MAX_NAME = 128;
 
 /**
  * Checked here rather than left to Appwrite so that a bad address and a short
@@ -106,11 +118,15 @@ function validate(email: string, password: string) {
   if (password.length < MIN_PASSWORD) throw new ApiError("passwordShort");
 }
 
-export async function signUp(email: string, password: string): Promise<{ user: User }> {
+export async function signUp(email: string, password: string, name: string): Promise<{ user: User }> {
   const normalised = email.trim().toLowerCase();
+  const displayName = name.trim().slice(0, MAX_NAME);
   validate(normalised, password);
+  // Asked for on the form, so an empty one is the reader's mistake to be told
+  // about rather than something to quietly sign them up without.
+  if (displayName.length === 0) throw new ApiError("nameMissing");
   try {
-    await account.create({ userId: ID.unique(), email: normalised, password });
+    await account.create({ userId: ID.unique(), email: normalised, password, name: displayName });
     // Creating the account does not sign anyone in; the reader expects to land
     // signed in, exactly as the old signup endpoint left them.
     await account.createEmailPasswordSession({ email: normalised, password });
