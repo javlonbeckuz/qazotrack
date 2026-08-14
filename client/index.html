@@ -9,10 +9,13 @@
     <link rel="apple-touch-icon" href="/qazotrack-logo.png" />
     <title>QazoTrack — Steady progress</title>
 
-    <!-- Umami. The only third-party request the site makes at runtime: it
-         counts page views without cookies and without an identifier that
-         follows a reader between sites, which is what makes it tolerable on a
-         page that is otherwise about somebody's prayer record.
+    <!-- Umami. One of the two analytics scripts the site loads; the other is
+         Simple Analytics, at the foot of the body. Both count page views
+         without cookies and without an identifier that follows a reader
+         between sites, which is what makes either tolerable on a page that is
+         otherwise about somebody's prayer record. Two trackers is two
+         third-party requests for one number — drop whichever is not being
+         read.
 
          `defer` keeps it off the critical path — fetched while the document
          parses, run after it — so a slow or blocked analytics host cannot hold
@@ -29,5 +32,15 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Simple Analytics. At the foot of the body, where its own install
+         instructions put it, and `async` so it never blocks the app script
+         above it. See the note in the head for why there are two of these.
+
+         The <noscript> pixel is how a reader with JavaScript off is counted at
+         all. `referrerpolicy` is the vendor's own value: it sends the referring
+         URL to their https endpoint but drops it on any downgrade to http. -->
+    <script async src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+    <noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
   </body>
 </html>
