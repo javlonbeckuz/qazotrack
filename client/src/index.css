@@ -299,7 +299,6 @@ input:focus-visible, textarea:focus-visible { outline:none; }
   display:flex; flex-direction:column; align-items:stretch; gap:2px;
   min-width:210px; padding:8px; border-radius:var(--radius);
   background:var(--surface-card); border:1px solid var(--rule);
-  box-shadow:0 10px 30px rgb(15 23 42 / .12);
   white-space:nowrap;
   opacity:0; transform:translateY(-4px); pointer-events:none;
   /* pointer-events, not visibility, gates the closed state. Transitioning
@@ -624,6 +623,12 @@ input:focus-visible, textarea:focus-visible { outline:none; }
    CARDS
    ========================================================================== */
 
+/* A panel is separated from its ground by ONE device: this 1px stroke.
+   Not a drop shadow, and not a fill that only works on one of the two grounds —
+   these cards sit on both the white band and the pale one, and the stroke is the
+   only signal that reads on both. Three different treatments were in the file
+   at once (stroke here, stroke-plus-shadow on the profile menu and the quick
+   sheet, an accent glow under the floating button); they are all this now. */
 .card, .stats-card, .meter, .overview-hero, .overview-list, .quick-sheet {
   background:var(--surface-card); border:1px solid var(--rule);
   border-radius:var(--radius); padding:32px;
@@ -1072,7 +1077,6 @@ input:focus-visible, textarea:focus-visible { outline:none; }
   display:inline-flex; align-items:center; gap:11px;
   background:var(--accent); color:var(--accent-contrast);
   font-size:15px; font-weight:600;
-  box-shadow:0 8px 24px color-mix(in srgb, var(--accent) 32%, transparent);
   transition:transform var(--dur-fast) var(--ease-out), background var(--dur) var(--ease-inout);
 }
 .quick-trigger:hover { background:var(--accent-hover); transform:translateY(-2px); }
@@ -1092,7 +1096,6 @@ input:focus-visible, textarea:focus-visible { outline:none; }
    unrelated to the button that opened it. */
 .quick-sheet {
   width:min(320px,calc(100vw - 48px)); gap:0; padding:20px 20px 12px;
-  box-shadow:0 18px 46px color-mix(in srgb, var(--surface-deep) 18%, transparent);
   transform-origin:bottom right;
   animation:quick-in var(--dur) var(--ease-out) both;
 }
