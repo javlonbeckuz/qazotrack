@@ -398,6 +398,38 @@ input:focus-visible, textarea:focus-visible { outline:none; }
 .icon-button { width:38px; height:38px; display:grid; place-items:center; }
 .icon-button:hover { background:var(--surface-chip); color:var(--accent); }
 
+/* The theme switch.
+   React swaps Sun for Moon as different component types, so the <svg> unmounts
+   and remounts on every press — which means one animation on the incoming icon
+   plays in both directions and there is nothing to animate out. The rotation
+   takes its direction from aria-pressed, so the mark swings the way the sun
+   would: anticlockwise into night, clockwise back into day. Rotation and
+   opacity only, no scale — a control that is pressed often should not pop. */
+@keyframes theme-swap-in { from { opacity:0; transform:rotate(-70deg); } to { opacity:1; transform:none; } }
+@keyframes theme-swap-out { from { opacity:0; transform:rotate(70deg); } to { opacity:1; transform:none; } }
+.theme-toggle svg { animation:theme-swap-in var(--dur) var(--ease-inout); }
+.theme-toggle[aria-pressed="false"] svg { animation-name:theme-swap-out; }
+/* The ring is the press feedback; it settles after the icon has landed. */
+.theme-toggle { border-radius:var(--radius-pill); }
+
+/* One cross-fade for the whole switch.
+   <body> already fades its ground, but every band, card and rule on top of it
+   changed instantly, so the page half-dissolved and half-snapped. These are the
+   large surfaces the eye actually tracks; giving them the same 200ms makes the
+   change read as one movement.
+   Safe to transition because tokens are declared ONLY on [data-theme] at the
+   root — see trap #1 in .design/motion.md. An element that redeclares the token
+   it is reading will wedge its own transition, which is why none of these do.
+   Listed explicitly rather than with a wildcard: a blanket transition would also
+   catch every hover state that already owns its timing. */
+.ledger-band, .view-band, .how-band, .ideas-band, .visual-stage, .intro-band,
+.card, .stats-card, .meter, .overview-hero, .overview-list, .feature-card,
+.prayer-ledger, .summary-rail > div, .section-nav, .icon-tile,
+.progress-track, .meter-track, .stats-bar-track, .big-progress {
+  transition:background-color var(--dur) var(--ease-inout),
+             border-color var(--dur) var(--ease-inout);
+}
+
 .site-header .chip { color:var(--on-ink-body); }
 .site-header .chip:hover, .site-header .chip.active { background:var(--on-ink-wash); color:var(--on-ink); }
 .site-header .icon-button { color:var(--on-ink-faint); }
