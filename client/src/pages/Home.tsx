@@ -4,6 +4,7 @@ import { BULUGH_FALLBACK_YEARS, BULUGH_RANGE, calculateQaza, DEFAULT_MENSTRUATIO
 import { ApiError, getState, logIn, logOut, me, putState, sendSuggestion, signUp, type ApiErrorCode, type User } from "@/lib/api";
 import { FALLBACK_COORDINATES, currentPrayer, type Coordinates } from "@/lib/solar";
 import { scrollToId } from "@/lib/scroll";
+import { fmt } from "@/lib/format";
 /**
  * Three.js is around 130 kB gzipped — more than the rest of the app put
  * together, for something decorative in the hero. Loading it separately keeps
@@ -51,18 +52,6 @@ const prayerMeta = [
  * Fajr is prayed, so the prayer most likely to be logged early was the one
  * most likely to land on the wrong day.
  */
-/**
- * One thousands separator, everywhere, in every language.
- *
- * `toLocaleString()` was used in four places and raw numbers in the rest, so the
- * same backlog read "11090" beside the ledger and "11 090" in the meter. It also
- * changed shape with the language, which made two figures on one screen disagree
- * whenever the reader switched. This is deterministic instead: U+202F, a narrow
- * no-break space, which reads correctly in Uzbek, English and Russian and cannot
- * be broken across a line.
- */
-const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-
 const localDay = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 
 

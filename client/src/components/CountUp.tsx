@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { fmt } from "@/lib/format";
 
 /**
  * A figure that counts up the first time it is seen.
@@ -16,10 +17,6 @@ import { useEffect, useRef, useState } from "react";
 const DURATION = 900;
 /** Ease-out-expo: nearly all the distance early, then a long settle. */
 const ease = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
-
-/** The app's one separator. Duplicated rather than imported so this component
-    stays free of a page-level dependency; see fmt in pages/Home.tsx. */
-const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 
 export default function CountUp({ value, className, suffix = "" }: { value: number; className?: string; suffix?: string }) {
   const host = useRef<HTMLSpanElement>(null);
