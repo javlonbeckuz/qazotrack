@@ -5,8 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
     <meta name="description" content="A quiet, steady way to keep your qaza prayers visible and moving." />
-    <link rel="icon" type="image/png" href="/qazotrack-logo.png" />
-    <link rel="apple-touch-icon" href="/qazotrack-logo.png" />
+    <!-- SVG first: it is the mark the page itself draws, and it stays crisp at
+         every tab size. The PNG stays behind it for anything that will not take
+         an SVG icon, and for the iOS home screen, which only accepts a raster. -->
+    <link rel="icon" type="image/svg+xml" href="/qazotrack-mark.svg" />
+    <link rel="icon" type="image/png" href="/qazotrack-icon.png" />
+    <link rel="apple-touch-icon" href="/qazotrack-icon.png" />
     <title>QazoTrack — Steady progress</title>
 
     <!-- Umami. One of the two analytics scripts the site loads; the other is
