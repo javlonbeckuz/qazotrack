@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, Check, ChevronRight, Eye, EyeOff, Minus, Moon, Plus, RotateCcw, Settings2, Sun, X } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Eye, EyeOff, Minus, Moon, Plus, RotateCcw, Settings2, Sun, User as UserIcon, X } from "lucide-react";
 import { BULUGH_FALLBACK_YEARS, BULUGH_RANGE, calculateQaza, DEFAULT_MENSTRUATION_DAYS, validateProfile, type Profile, type ValidationCode } from "@/lib/qaza";
 import { ApiError, getState, logIn, logOut, me, putState, sendSuggestion, signUp, type ApiErrorCode, type User } from "@/lib/api";
 import { FALLBACK_COORDINATES, currentPrayer, type Coordinates } from "@/lib/solar";
@@ -60,22 +60,79 @@ const copy = {
     overTime: "Vaqt bo‘yicha", overTimeNote: "Jami qazo qilingan namozlar — birinchi yozuvdan bugungacha.", overTimeEmpty: "Egri chiziq ikkinchi kundan boshlab chiziladi.", since: "boshlanishi", total: "jami", 
     stats: "Statistika", statsTitle: "Rivojingiz bir qarashda.", statsNote: "Faqat qayd: solishtiruv ham, ketma-ketlik ham yo‘q.", byPrayer: "Namozlar bo‘yicha", last30: "So‘nggi 30 kun", pace: "Sur‘at", perDay: "Kuniga o‘rtacha", projected: "Taxminiy tugash", atThisPace: "Shu sur‘atda", noActivity: "Hali yozuv yo‘q — birinchi namozdan keyin shu yerda ko‘rinadi.", noProjection: "Sur‘at aniqlangach ko‘rsatiladi.", done: "Bajarildi", 
     today: "Bugun", overview: "Umumiy", adjust: "Rejani sozlash", heroTitle: <>Qazo namozlaringizni<br /><em>birin-ketin</em> ado eting.</>, heroBody: "Qazo namozlaringizni ko‘z oldingizda saqlaydigan, ularni boshqarishga va izchil ado etishga yordam beradigan sodda vosita.", countPrayer: "Namoz sanash", howItWorks: "Qanday ishlaydi", intro: "Ketma-ketlik ham, bosim ham yo‘q. Faqat ado etgan namozlaringizni aniqlaydi — bosqichma-bosqich.", openLedger: "Bugungi daftarni ochish", adjustPlan: "Rejamni sozlash", trust: "Izchil rivoj uchun soddalashtirilgan.", ledger: "Bugungi daftar", ledgerTitle: "Har bir ado etilgan namoz — bir qadam.", ledgerNote: <>Har bir ado etilgan namozdan keyin + ni bosing.<br />Keyin istalgan payt o‘zgartirishingiz mumkin.</>, countedToday: "bugun ado etilgan namoz", remaining: "rejada qolgan namoz", monthTarget: "oylik maqsaddan", planned: "rejalashtirilgan", reset: "Bugunni tozalash", ready: "Boshlashga tayyor.", complete: "Bir namoz ado etilgan deb belgilandi.", movedBack: "Bir namoz ro‘yxatga qaytarildi.", cleared: "Bugungi yozuvlar o‘chirildi.", private: "Ma’lumotlaringiz akkauntingizda saqlanadi va boshqa hech kimga ko‘rinmaydi.", future: "Sozlamalaringiz kelajakdagi yangilanish uchun tayyor.", planReady: "Rejangizni istalgan payt o‘zgartirishingiz mumkin.", overviewLabel: "Reja ko‘rinishi", overviewTitle: "Oyingiz bir qarashda.", overviewNote: <>Keyingi e’tiboringiz qayerda bo‘lishi<br />mumkinligini sodda ko‘ring.</>, countedOf: "{n} ta rejalashtirilgan namozdan sanaldi", stillToGo: "hali qoldi", local: "mahalliy vaqt", setupLabel: "Sozlash", setupTitle: "Nechta namozni qazo qilyapsiz?", setupBody: "Tug‘ilgan sanangizni va namozni muntazam o‘qiy boshlagan sanangizni kiriting — qolganini tizim hisoblab beradi.", birthDate: "Tug‘ilgan sana", gender: "Jins", male: "Erkak", female: "Ayol", startPraying: "Namozni qachon boshlagansiz", notYet: "Hali muntazam emas", pickDate: "Sanani tanlang", menstruation: "Oyiga hayz kunlari", menstruationHelp: "O‘rtacha qiymat. Bu kunlar umumiy hisobdan chiqarib tashlanadi.", bulughNote: "Balog‘at alomat bilan belgilanadi: o‘g‘il bolalarda ihtilom (12–15 qamariy yosh), qiz bolalarda hayz (9–15 qamariy yosh). Alomat bo‘lmasa, 15 qamariy yilda balog‘at hisoblanadi.", bulughAge: "Balog‘at yoshi", bulughAgeHelp: "Alomat paydo bo‘lgan qamariy yosh: {min}–{max}. Bilmasangiz, bo‘sh qoldiring — {fallback} yosh olinadi.", bulughAgeUnknown: "Bilmayman", errBulughAgeRange: "Balog‘at yoshi {min}–{max} oralig‘ida bo‘lishi kerak.", estimateLabel: "Hisob", bulughDate: "Balog‘at sanasi", daysCounted: "kun hisoblandi", excluded: "kun chiqarildi", perPrayer: "Har bir namozdan", errBirthMissing: "Tug‘ilgan sanani kiriting.", errBirthFuture: "Tug‘ilgan sana kelajakda bo‘lishi mumkin emas.", errBirthRange: "Sana 1937–2076 oralig‘ida bo‘lishi kerak.", errStartBefore: "Bu sana balog‘at sanasidan oldin.", errStartFuture: "Bu sana kelajakda.", setupSave: "Kuzatishni boshlash", setupCancel: "Bekor qilish", setupSaved: "Rejangiz saqlandi.", now: "Hozir", prayerNames: { fajr: "Bomdod", dhuhr: "Peshin", asr: "Asr", maghrib: "Shom", isha: "Xufton" }, firstLight: "Tong oldi", midday: "Peshin", lateAfternoon: "Kechki tush", afterSunset: "Quyosh botgach", night: "Tun", sunSettling: "Kun sokinlashmoqda.", steady: "Shoshilmasdan, barqaror.", prayerTime: "{name} vaqti", personal: "Shaxsiy foydalanish", footer: "Barqaror rivoj uchun yaratilgan", remove: "Bir namozni olib tashlash", add: "Bir namoz qo‘shish", targetOf: "maqsadning",
+    countedSoFar: "hozirgacha sanalgan namozlar —",
+    featuresLabel: "Imkoniyatlar", featuresTitle: "Davom etish uchun kerak bo‘lgan hammasi.",
+    feat1Title: "Har bir namoz uchun bitta daftar", feat1Body: "Ado etgan har bir namozdan keyin + ni bosing. Bomdod, Peshin, Asr, Shom va Xufton hisobi doim ko‘z oldingizda.",
+    feat2Title: "Namoz vaqtlari — siz turgan joyda", feat2Body: "Beshala namoz vaqtini qat‘iy soat emas, sizning koordinatalaringizdagi quyoshning haqiqiy holati belgilaydi.",
+    feat3Title: "Bosim emas, rivoj", feat3Body: "Birinchi yozuvdan bugungacha — shaxsiy qaydnoma. Ketma-ketlik ham, solishtiruv ham yo‘q; faqat ado etilgani.",
+    feat4Title: "Rejani bir marta belgilang", feat4Body: "Tug‘ilgan sanangizni va muntazam namoz o‘qiy boshlagan kuningizni kiriting. Balog‘at va hayz kunlari bilan birga qazoyingiz o‘zi hisoblanadi.",
+    feat5Title: "Yorug‘lik ortidan", feat5Body: "Sahifa siz turgan joydagi quyosh bilan kunduzdan kechaga o‘tadi — yoki o‘zingiz xohlaganingizcha.",
+    feat6Title: "O‘zbekcha, inglizcha, ruscha", feat6Body: "Butun interfeys — istalgan paytda almashtiriladi, siz namoz o‘qiydigan tilda.",
+    aboutLabel: "Haqida", aboutTitle: "Ikki sanadan hisoblanadi, qo‘lda yozilmaydi.",
+    aboutBody: "QazoTrack qazoyingizni tug‘ilgan sanangiz va muntazam namoz o‘qiy boshlagan kuningizdan kelib chiqib hisoblaydi. Balog‘at — bulug‘ — eng erta alomat bo‘yicha olinadi: o‘g‘il bolalar uchun {maleMin} va {maleMax} qamariy yosh orasida, qizlar uchun {femaleMin} va {femaleMax} orasida; alomat bo‘lmasa, {fallback} qamariy yoshda. Ayollar uchun har oydagi o‘rtacha hayz kunlari hisobdan chiqariladi. Hammasi o‘z akkauntingizda qoladi.",
   },
   en: {
     accountLabel: "Account", builtBy: "Built by", ideasLabel: "Feedback", ideasTitle: "Suggestions", ideasBody: "What would make this better? Write it here — everything gets read.", ideasPlaceholder: "Your suggestion…", ideasContact: "Your email (optional)", ideasSend: "Send", ideasSending: "Sending…", ideasThanks: "Thank you — your suggestion was sent.", ideasFailed: "Not sent. Please try again shortly.", quickAdd: "Add a prayer", quickAddTitle: "Which prayer?", quickAddNote: "Press + if you made it up. Press the dashed button if you missed it.", quickAddClose: "Close", howLabel: "How it works", howTitle: "How QazoTrack works", howClose: "Close", howStep1: "Create an account", howStep1Body: "Your record lives in your account, so it reads the same on your phone and your laptop.", howStep2: "Work out your plan", howStep2Body: "Enter your date of birth and when you began praying regularly. The number of missed prayers is calculated from those two dates.", howStep3: "Mark them off daily", howStep3Body: "Press + after each prayer you make up. If you miss one today, add it to the list instead.", howStep4: "Watch it move", howStep4Body: "The curve over time shows how many you have made up, from your first entry to today.", addMissed: "Add missed", addMissedTitle: "Missed today", addMissedBody: "Add a prayer you missed today and it joins your plan.", addMissedOne: "One missed prayer added.", addMissedDone: "Added", noDataYet: "—", firstRunHint: "Your figures appear once you have an account.", signUpTitle: "Create your account", logInTitle: "Sign in", accountBody: "An account keeps your record with you across phone and laptop.", displayName: "Your name", displayNameHint: "This is the name shown at the top of the page.", email: "Email", password: "Password", passwordHint: "At least 8 characters.", showPassword: "Show password", hidePassword: "Hide password", signUp: "Create account", logIn: "Sign in", signOut: "Sign out", haveAccount: "Already have an account? Sign in", noAccount: "No account yet? Create one", authWorking: "One moment…", loadingAccount: "Loading your record…", importedLocal: "The record already on this device has been moved into your account.", syncFailed: "Not saved — this will retry once the connection is back.", errors: { emailInvalid: "That email address does not look right.", passwordShort: "Use at least 8 characters.", nameMissing: "Enter your name.", emailTaken: "There is already an account with that email.", credentialsWrong: "That email and password do not match.", rateLimited: "Too many attempts. Try again in 15 minutes.", unauthorized: "Your session has ended. Please sign in again.", badRequest: "That request could not be completed.", offline: "Could not reach the server." }, 
     overTime: "Over time", overTimeNote: "Total prayers made up, from your first entry to today.", overTimeEmpty: "The curve appears once there is a second day to draw between.", since: "from", total: "total", 
     stats: "Stats", statsTitle: "Your progress at a glance.", statsNote: "A record only — no comparisons and no streaks.", byPrayer: "By prayer", last30: "Last 30 days", pace: "Pace", perDay: "Average per day", projected: "Projected finish", atThisPace: "At this pace", noActivity: "Nothing recorded yet — your first prayer will show up here.", noProjection: "Shown once there is a pace to measure.", done: "Done", 
     today: "Today", overview: "Overview", adjust: "Adjust plan", heroTitle: <>Complete your missed prayers<br /><em>one calm step</em> at a time.</>, heroBody: "A simple place to keep your missed prayers visible, manageable, and moving in the right direction.", countPrayer: "Count a prayer", howItWorks: "How it works", intro: "No streaks. No pressure. Just a clear record of the prayers you’ve made space for, one quiet entry at a time.", openLedger: "Open today’s ledger", adjustPlan: "Adjust my plan", trust: "Kept simple for steady progress.", ledger: "Today’s ledger", ledgerTitle: "Every prayer made up is a step.", ledgerNote: <>Tap + after each prayer you make up.<br />You can always adjust it later.</>, countedToday: "prayers counted today", remaining: "remaining in this plan", monthTarget: "of this month’s target", planned: "planned", reset: "Reset today", ready: "Ready when you are.", complete: "One prayer marked complete.", movedBack: "One prayer moved back to your list.", cleared: "Today’s entries have been cleared.", private: "Your progress is stored privately in your account.", future: "Your settings are ready for a future update.", planReady: "Your plan can be adjusted whenever you need.", overviewLabel: "Plan overview", overviewTitle: "Your month at a glance.", overviewNote: <>A simple view of where your attention<br />can go next.</>, countedOf: "of {n} planned prayers counted", stillToGo: "still to go", local: "local time", setupLabel: "Set up", setupTitle: "How many prayers are you making up?", setupBody: "Enter your date of birth and when you began praying regularly — the rest is worked out for you.", birthDate: "Date of birth", gender: "Gender", male: "Male", female: "Female", startPraying: "When you began praying regularly", notYet: "Not regularly yet", pickDate: "Pick a date", menstruation: "Menstruation days per month", menstruationHelp: "On average. These days are excluded from the count.", bulughNote: "Maturity is set by a physical sign: ihtilam for boys (12–15 lunar years), the first hayd for girls (9–15). With no sign, maturity is taken at 15 lunar years.", bulughAge: "Age at maturity", bulughAgeHelp: "The lunar age when the sign appeared: {min}–{max}. Leave it blank if you do not know — {fallback} is used.", bulughAgeUnknown: "I don’t know", errBulughAgeRange: "The age needs to fall between {min} and {max}.", estimateLabel: "Estimate", bulughDate: "Maturity date", daysCounted: "days counted", excluded: "days excluded", perPrayer: "Of each prayer", errBirthMissing: "Enter your date of birth.", errBirthFuture: "That date is in the future.", errBirthRange: "The date needs to fall between 1937 and 2076.", errStartBefore: "That is before your maturity date.", errStartFuture: "That date is in the future.", setupSave: "Start tracking", setupCancel: "Cancel", setupSaved: "Your plan has been saved.", now: "Now", prayerNames: { fajr: "Fajr", dhuhr: "Dhuhr", asr: "Asr", maghrib: "Maghrib", isha: "Isha" }, firstLight: "First light", midday: "Midday", lateAfternoon: "Late afternoon", afterSunset: "After sunset", night: "Night", sunSettling: "The day is settling.", steady: "Steady, not hurried.", prayerTime: "{name} time", personal: "Personal use", footer: "Built for steady progress", remove: "Remove one prayer", add: "Add one prayer", targetOf: "of this month’s target",
+    countedSoFar: "prayers counted so far —",
+    featuresLabel: "Features", featuresTitle: "Everything you need to keep going.",
+    feat1Title: "One ledger for every prayer", feat1Body: "Press + after each prayer you make up. Running counts for Fajr, Dhuhr, Asr, Maghrib and Isha, always in view.",
+    feat2Title: "Prayer times, where you are", feat2Body: "The sun’s real position for your coordinates decides when each of the five prayers falls, not a fixed clock.",
+    feat3Title: "Progress, not pressure", feat3Body: "A private record from your first entry to today. No streaks, no comparisons — just what’s been made up.",
+    feat4Title: "Set your plan once", feat4Body: "Enter your birth date and when you began praying regularly. Your backlog, including bulugh and menstruation days, is worked out for you.",
+    feat5Title: "Follows the light", feat5Body: "The page shifts from day to night with the sun at your location, or however you’d rather set it yourself.",
+    feat6Title: "Uzbek, English, Russian", feat6Body: "The whole interface, switchable at any time, in the language you pray in.",
+    aboutLabel: "About", aboutTitle: "Worked out from two dates, not typed in by hand.",
+    aboutBody: "QazoTrack works out your backlog from your date of birth and the date you began praying regularly. Religious maturity, bulugh, is taken at the earliest sign — between {maleMin} and {maleMax} lunar years for boys, {femaleMin} and {femaleMax} for girls — or at {fallback} lunar years if no sign ever appeared. For women, an average number of menstruation days each month is excluded from the count. Everything stays in your own account.",
   },
   ru: {
     accountLabel: "Аккаунт", builtBy: "Разработка:", ideasLabel: "Отзыв", ideasTitle: "Предложения", ideasBody: "Что стоит улучшить? Напишите здесь — читается всё.", ideasPlaceholder: "Ваше предложение…", ideasContact: "Ваша почта (необязательно)", ideasSend: "Отправить", ideasSending: "Отправляем…", ideasThanks: "Спасибо — предложение отправлено.", ideasFailed: "Не отправлено. Попробуйте чуть позже.", quickAdd: "Добавить молитву", quickAddTitle: "Какая молитва?", quickAddNote: "Нажмите + если восполнили. Пунктирную — если пропустили.", quickAddClose: "Закрыть", howLabel: "Как это работает", howTitle: "Как работает QazoTrack", howClose: "Закрыть", howStep1: "Создайте аккаунт", howStep1Body: "Записи хранятся в вашем аккаунте, поэтому они одинаковы на телефоне и на компьютере.", howStep2: "Рассчитайте план", howStep2Body: "Укажите дату рождения и когда вы начали регулярно молиться. Количество пропущенных молитв считается по этим двум датам.", howStep3: "Отмечайте каждый день", howStep3Body: "Нажимайте + после каждой восполненной молитвы. А пропущенную сегодня — добавьте в список.", howStep4: "Следите за прогрессом", howStep4Body: "График по времени показывает, сколько молитв восполнено с первой записи до сегодня.", addMissed: "Добавить пропуск", addMissedTitle: "Пропущено сегодня", addMissedBody: "Добавьте молитву, пропущенную сегодня, — она войдёт в ваш план.", addMissedOne: "Одна пропущенная молитва добавлена.", addMissedDone: "Добавлено", noDataYet: "—", firstRunHint: "Цифры появятся после создания аккаунта.", signUpTitle: "Создайте аккаунт", logInTitle: "Войти", accountBody: "Аккаунт сохраняет ваши записи на телефоне и компьютере.", displayName: "Ваше имя", displayNameHint: "Это имя показывается вверху страницы.", email: "Эл. почта", password: "Пароль", passwordHint: "Не менее 8 символов.", showPassword: "Показать пароль", hidePassword: "Скрыть пароль", signUp: "Создать аккаунт", logIn: "Войти", signOut: "Выйти", haveAccount: "Уже есть аккаунт? Войти", noAccount: "Нет аккаунта? Создать", authWorking: "Минуточку…", loadingAccount: "Загружаем ваши записи…", importedLocal: "Записи с этого устройства перенесены в ваш аккаунт.", syncFailed: "Не сохранено — повторим после восстановления связи.", errors: { emailInvalid: "Адрес почты выглядит неверно.", passwordShort: "Используйте не менее 8 символов.", nameMissing: "Укажите ваше имя.", emailTaken: "Аккаунт с такой почтой уже есть.", credentialsWrong: "Почта и пароль не совпадают.", rateLimited: "Слишком много попыток. Повторите через 15 минут.", unauthorized: "Сеанс завершён. Войдите снова.", badRequest: "Запрос не выполнен.", offline: "Не удалось связаться с сервером." }, 
     overTime: "Со временем", overTimeNote: "Всего восполнено — от первой записи до сегодня.", overTimeEmpty: "Кривая появится со второго дня.", since: "с", total: "всего", 
     stats: "Статистика", statsTitle: "Ваш прогресс одним взглядом.", statsNote: "Только запись — без сравнений и без серий.", byPrayer: "По молитвам", last30: "Последние 30 дней", pace: "Темп", perDay: "В среднем в день", projected: "Ожидаемое завершение", atThisPace: "При таком темпе", noActivity: "Пока нет записей — первая молитва появится здесь.", noProjection: "Появится, когда будет что измерять.", done: "Готово", 
     today: "Сегодня", overview: "Обзор", adjust: "Изменить план", heroTitle: <>Восполняйте пропущенные молитвы<br /><em>шаг за спокойным</em> шагом.</>, heroBody: "Простое место, где пропущенные молитвы остаются видимыми, управляемыми и движутся в правильном направлении.", countPrayer: "Считать молитву", howItWorks: "Как это работает", intro: "Без серий и давления. Только ясная запись молитв, которым вы нашли место, — один спокойный шаг за раз.", openLedger: "Открыть дневник", adjustPlan: "Изменить мой план", trust: "Просто для устойчивого прогресса.", ledger: "Дневник сегодня", ledgerTitle: "Каждая восполненная молитва — шаг.", ledgerNote: <>Нажимайте + после каждой восполненной молитвы.<br />Позже всё можно изменить.</>, countedToday: "молитв сегодня", remaining: "осталось в плане", monthTarget: "от цели месяца", planned: "запланировано", reset: "Сбросить сегодня", ready: "Готово, когда готовы вы.", complete: "Одна молитва отмечена.", movedBack: "Одна молитва возвращена в список.", cleared: "Записи за сегодня очищены.", private: "Ваш прогресс хранится конфиденциально в вашем аккаунте.", future: "Настройки будут доступны в будущем обновлении.", planReady: "План можно изменить в любое время.", overviewLabel: "Обзор плана", overviewTitle: "Ваш месяц одним взглядом.", overviewNote: <>Простой взгляд на то, куда<br />направить внимание дальше.</>, countedOf: "из {n} запланированных молитв отмечено", stillToGo: "осталось", local: "местное время", setupLabel: "Настройка", setupTitle: "Сколько молитв вы восполняете?", setupBody: "Укажите дату рождения и когда вы начали регулярно молиться — остальное мы посчитаем.", birthDate: "Дата рождения", gender: "Пол", male: "Мужской", female: "Женский", startPraying: "Когда начали регулярно молиться", notYet: "Пока не регулярно", pickDate: "Выберите дату", menstruation: "Дней менструации в месяц", menstruationHelp: "В среднем. Эти дни исключаются из подсчёта.", bulughNote: "Совершеннолетие определяется признаком: ихтилям у мальчиков (12–15 лунных лет), первая менструация у девочек (9–15). Без признака совершеннолетие берётся в 15 лунных лет.", bulughAge: "Возраст совершеннолетия", bulughAgeHelp: "Лунный возраст, когда появился признак: {min}–{max}. Не знаете — оставьте пустым, будет взято {fallback}.", bulughAgeUnknown: "Не знаю", errBulughAgeRange: "Возраст должен быть от {min} до {max}.", estimateLabel: "Расчёт", bulughDate: "Дата совершеннолетия", daysCounted: "дней учтено", excluded: "дней исключено", perPrayer: "Каждой молитвы", errBirthMissing: "Укажите дату рождения.", errBirthFuture: "Эта дата в будущем.", errBirthRange: "Дата должна быть между 1937 и 2076.", errStartBefore: "Это раньше даты совершеннолетия.", errStartFuture: "Эта дата в будущем.", setupSave: "Начать отслеживание", setupCancel: "Отмена", setupSaved: "Ваш план сохранён.", now: "Сейчас", prayerNames: { fajr: "Фаджр", dhuhr: "Зухр", asr: "Аср", maghrib: "Магриб", isha: "Иша" }, firstLight: "Перед рассветом", midday: "Полдень", lateAfternoon: "После полудня", afterSunset: "После заката", night: "Ночь", sunSettling: "День успокаивается.", steady: "Спокойно и без спешки.", prayerTime: "Время {name}", personal: "Для личного использования", footer: "Создано для устойчивого прогресса", remove: "Убрать одну молитву", add: "Добавить одну молитву", targetOf: "от цели месяца",
+    countedSoFar: "молитв засчитано —",
+    featuresLabel: "Возможности", featuresTitle: "Всё, что нужно, чтобы продолжать.",
+    feat1Title: "Одна тетрадь на все молитвы", feat1Body: "Нажимайте + после каждой восполненной молитвы. Счёт по фаджру, зухру, асру, магрибу и ише всегда перед глазами.",
+    feat2Title: "Время молитв там, где вы", feat2Body: "Время каждой из пяти молитв определяет реальное положение солнца для ваших координат, а не фиксированные часы.",
+    feat3Title: "Прогресс, а не давление", feat3Body: "Личная запись от первой отметки до сегодня. Без серий и без сравнений — только то, что восполнено.",
+    feat4Title: "План задаётся один раз", feat4Body: "Введите дату рождения и день, когда начали молиться регулярно. Долг, включая булуг и дни менструации, рассчитается сам.",
+    feat5Title: "Следует за светом", feat5Body: "Страница переходит ото дня к ночи вместе с солнцем в вашем месте — или так, как вы зададите сами.",
+    feat6Title: "Узбекский, английский, русский", feat6Body: "Весь интерфейс переключается в любой момент — на языке, на котором вы молитесь.",
+    aboutLabel: "О приложении", aboutTitle: "Рассчитывается из двух дат, а не вводится вручную.",
+    aboutBody: "QazoTrack рассчитывает ваш долг из даты рождения и дня, когда вы начали молиться регулярно. Религиозное совершеннолетие, булуг, берётся по самому раннему признаку — между {maleMin} и {maleMax} лунными годами для мальчиков и между {femaleMin} и {femaleMax} для девочек — либо в {fallback} лунных лет, если признака не было. Для женщин из счёта исключается среднее число дней менструации в месяц. Всё остаётся в вашем аккаунте.",
   },
 } as const;
 
 type Copy = (typeof copy)[Language];
+
+/**
+ * The About paragraph restates the maturity window the app actually counts
+ * from, so the figures are read out of `lib/qaza.ts` rather than typed into
+ * three translations that would quietly go wrong the day a constant moves.
+ */
+const aboutBodyFor = (t: Copy) => t.aboutBody
+  .replace("{maleMin}", String(BULUGH_RANGE.male.min))
+  .replace("{maleMax}", String(BULUGH_RANGE.male.max))
+  .replace("{femaleMin}", String(BULUGH_RANGE.female.min))
+  .replace("{femaleMax}", String(BULUGH_RANGE.female.max))
+  .replace("{fallback}", String(BULUGH_FALLBACK_YEARS));
+
+/**
+ * The dot patterns the reference draws in each feature tile — a 3x3 grid with
+ * these cells filled. They are a mark, not a chart: nothing is encoded in
+ * which cells are on, so they are copied across unchanged and hidden from
+ * assistive tech.
+ */
+const FEATURE_DOTS = [[1, 3, 4, 5, 7], [1, 3, 4, 5, 7], [0, 4, 8], [0, 1, 4, 6, 7], [0, 3, 4, 6, 7, 8]];
+
+/**
+ * The languages card carries the three flags instead of a dot pattern. It is
+ * the same 40px chip; only its inside stops being a 3x3 grid, which is the one
+ * thing the shared class cannot express — and the stylesheet is not this
+ * file's to extend.
+ */
 
 const localeFor = (language: Language) => (language === "uz" ? "uz-UZ" : language === "ru" ? "ru-RU" : "en-US");
 
@@ -119,6 +176,7 @@ export default function Home() {
   const [history, setHistory] = useState<History>(() => { try { const saved = localStorage.getItem("qaza-history"); return saved ? JSON.parse(saved) : {}; } catch { return {}; } });
   const [notice, setNotice] = useState<string | null>(null);
   const [pulseKey, setPulseKey] = useState<PrayerKey | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [themeOverride, setThemeOverride] = useState<"day" | "night" | null>(() => { const saved = localStorage.getItem("qaza-theme"); return saved === "day" || saved === "night" ? saved : null; });
   const [now, setNow] = useState(() => new Date());
   // Where the reader is, for the sun. Starts on the fallback so the scene has
@@ -268,6 +326,18 @@ export default function Home() {
   const timeState = getTimeState(now, language, coordinates);
   // The clock decides unless the reader has explicitly chosen.
   const isNight = themeOverride ? themeOverride === "night" : timeState.isNight;
+
+  /* The theme classes live on `.site-shell`, which is a <main> — so <body> and
+     <html>, being its parents, never see the redeclared tokens and keep the day
+     values. That showed as a white scrollbar gutter and a white overscroll band
+     around a dark page. The stylesheet already keys every theme rule off
+     `[data-theme]` as well as `.site-shell.night`; this is what finally sets it,
+     which lifts the tokens to the root where body's own background can read
+     them. The meta colour follows so the mobile browser chrome matches too. */
+  useEffect(() => {
+    document.documentElement.dataset.theme = isNight ? "dark" : "light";
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isNight ? "#0f172a" : "#ffffff");
+  }, [isNight]);
   const toggleTheme = () => { const next = isNight ? "day" : "night"; setThemeOverride(next); localStorage.setItem("qaza-theme", next); };
   const totals = useMemo(() => {
     const completed = Object.values(counts).reduce((sum, value) => sum + value, 0);
@@ -343,13 +413,23 @@ export default function Home() {
   const resetToday = () => { setCounts(Object.fromEntries(Object.keys(emptyCounts).map((key) => [key, 0])) as Counts); setHistory({}); setNotice(t.cleared); };
 
   return <main className={`site-shell ${isNight ? "night" : "day"}`} id="top" lang={language}>
-    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><img className="brand-logo" src="/qazotrack-logo.png" alt="" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation"><div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div>{user
-      ? <div className="account-control">{/* The name the reader gave, falling back to the address for accounts made
-             before the form asked for one. The address stays as the tooltip
-             either way — it is what identifies the account when signing in. */}
-        <span className="account-name" title={user.email}>{user.name || user.email}</span><button className="chip" onClick={signOutNow}>{t.signOut}</button></div>
-      : <div className="account-control"><button className="chip" onClick={() => goToAuth("login")}>{t.logIn}</button><button className="nav-cta" onClick={() => goToAuth("signup")}>{t.signUp} <ArrowRight size={14} /></button></div>}<button className="icon-button" onClick={toggleTheme} aria-label="Toggle colour theme" aria-pressed={isNight}>{isNight ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}</button></nav></header>
-    <section className="visual-stage"><div className="hero container"><div className="hero-copy"><h1 className="display">{t.heroTitle}</h1><p className="prose">{t.heroBody}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.countPrayer} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={() => scrollToId("how")}>{t.howItWorks} <ChevronRight size={15} /></button></div></div><div className="hero-visual-wrap"><div id="hero-visual" className="gradient-visual"><div className="day-arc" aria-hidden="true"><span className="sun-marker" style={{ "--sun-progress": timeState.progress } as React.CSSProperties} /></div><Suspense fallback={null}><SolarScene coordinates={coordinates} isNight={isNight} /></Suspense><div className="sun-status"><span className="sun-kicker">{t.now} · {timeState.formatted}</span><strong>{t.prayerTime.replace("{name}", t.prayerNames[timeState.current])}</strong><span>{timeState.at(timeState.times[timeState.current]) ?? timeState.label} · {t.local}</span></div><span className="gradient-caption">{isNight ? t.sunSettling : t.steady}</span></div><div className="stat-stack">{user ? <><div><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div><span className="figure">{totals.percent}<span className="figure-unit">%</span></span><span className="caption">{t.monthTarget}</span></div></> : <div className="stat-empty"><span className="figure">{t.noDataYet}</span><span className="caption">{t.firstRunHint}</span></div>}</div></div></div><div className="intro-band"><div className="container intro-grid"><div><p className="intro-copy">{t.intro}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.openLedger} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={openSetup}>{t.adjustPlan} <Settings2 size={15} /></button></div></div><p className="trust-line"><span className="trust-dot" />{t.trust}</p></div></div></section>
+    <header className="site-header container"><a className="brand" href="#top" aria-label="QazoTrack home"><span className="brand-spark" aria-hidden="true" /><span className="brand-wordmark">QazoTrack</span></a><nav className="top-nav" aria-label="Primary navigation">{/* In-page links, and buttons rather than <a href="#…"> on purpose: a native
+             anchor hands the jump to the browser, and lib/scroll.ts exists
+             because on at least one of them that jump does nothing at all. */}
+      <button className="chip nav-link" onClick={() => scrollToId("features")}>{t.featuresLabel}</button><button className="chip nav-link" onClick={() => scrollToId("how")}>{t.howItWorks}</button><button className="chip nav-link" onClick={() => scrollToId("about")}>{t.aboutLabel}</button><button className="icon-button" onClick={toggleTheme} aria-label="Toggle colour theme" aria-pressed={isNight}>{isNight ? <Sun size={17} strokeWidth={1.5} /> : <Moon size={17} strokeWidth={1.5} />}</button><div className="language-switcher" role="group" aria-label="Language"><span className="language-current">{languages.find((item) => item.key === language)?.flag}</span>{languages.map((item) => <button key={item.key} className={language === item.key ? "language-button active" : "language-button"} onClick={() => setLanguage(item.key)} aria-label={item.label} title={item.label}>{item.flag}<span>{item.key.toUpperCase()}</span></button>)}</div></nav></header><div className={`profile-dock ${profileOpen ? "is-open" : ""}`} onMouseEnter={() => setProfileOpen(true)} onMouseLeave={() => setProfileOpen(false)}>{user
+      ? <>
+        <button className="profile-avatar" onClick={() => setProfileOpen(!profileOpen)} aria-expanded={profileOpen} aria-haspopup="menu" aria-label={user.name || user.email} title={user.email}><UserIcon size={22} strokeWidth={1.7} /></button>
+        {/* Revealed on hover, on keyboard focus, and on click. Hover alone
+            would strand every touch reader and every keyboard reader, so the
+            button toggles the same state the pointer does. */}
+        <div className="profile-menu" role="menu">
+          <span className="profile-menu-name" title={user.email}>{user.name || user.email}</span>
+          <button className="chip" role="menuitem" onClick={openSetup}>{t.adjust}</button>
+          <button className="chip" role="menuitem" onClick={signOutNow}>{t.signOut}</button>
+        </div>
+      </>
+      : <div className="account-control"><button className="chip" onClick={() => goToAuth("login")}>{t.logIn}</button><button className="nav-cta" onClick={() => goToAuth("signup")}>{t.signUp} <ArrowRight size={14} /></button></div>}</div>
+    <section className="visual-stage"><CounterStrip t={t} total={user ? totals.completed : 0} /><div className="hero container"><div className="hero-copy"><h1 className="display">{t.heroTitle}</h1></div><div className="hero-side"><p>{t.heroBody}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.countPrayer} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={() => scrollToId("how")}>{t.howItWorks} <ChevronRight size={15} /></button></div></div><div className="hero-visual-wrap" aria-hidden="true"><div id="hero-visual" className="gradient-visual"><div className="day-arc" aria-hidden="true"><span className="sun-marker" style={{ "--sun-progress": timeState.progress } as React.CSSProperties} /></div><Suspense fallback={null}><SolarScene coordinates={coordinates} isNight={isNight} /></Suspense></div></div><div className="hero-readout"><div className="sun-status"><span className="sun-kicker">{t.now} · {timeState.formatted}</span><strong>{t.prayerTime.replace("{name}", t.prayerNames[timeState.current])}</strong><span>{timeState.at(timeState.times[timeState.current]) ?? timeState.label} · {t.local}</span></div><span className="gradient-caption">{isNight ? t.sunSettling : t.steady}</span><div className="stat-stack">{user ? <><div><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div><span className="figure">{totals.percent}<span className="figure-unit">%</span></span><span className="caption">{t.monthTarget}</span></div></> : <div className="stat-empty"><span className="figure">{t.noDataYet}</span><span className="caption">{t.firstRunHint}</span></div>}</div></div></div><div className="intro-band"><div className="container intro-grid"><div><p className="intro-copy">{t.intro}</p><div className="hero-actions"><button className="btn btn-primary" onClick={openLedger}>{t.openLedger} <ArrowRight size={16} /></button><button className="btn btn-secondary" onClick={openSetup}>{t.adjustPlan} <Settings2 size={15} /></button></div></div><p className="trust-line"><span className="trust-dot" />{t.trust}</p></div></div></section>
     <div id="workspace">
     {!sessionChecked ? <section className="ledger-band"><div className="container"><p className="caption">{t.loadingAccount}</p></div></section> :
     !user ? <Auth t={t} mode={authMode} onModeChange={setAuthMode} onAuthed={setUser} /> :
@@ -360,19 +440,24 @@ export default function Home() {
           thirds of somebody's record behind a switch made the app feel smaller
           than it is; the index above simply moves you between them. */}
       <SectionNav active={activeView} t={t} onGo={showView} onAdjust={openSetup} />
-      <section className="ledger-band view-band" id="today">
-        <div className="container"><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}<span className="figure-unit">%</span></span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; const progress = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0; const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--delay": `${index * 48}ms` } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.at(timeState.times[prayer.key]) ? `${timeState.at(timeState.times[prayer.key])} · ` : ""}{timeState.current === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ width: `${progress}%` }} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button ghost" onClick={() => addMissed(prayer.key)} aria-label={`${t.addMissed} ${name}`} title={`${t.addMissed} · ${name}`}><Minus size={15} strokeWidth={1.6} /><span className="step-plus">+</span></button><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button is-danger" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></div>
+      <section className="ledger-band view-band alt" id="today">
+        <div className="container"><div className="section-intro"><div><p className="label">{t.ledger}</p><h2 className="h2">{t.ledgerTitle}</h2></div><p className="caption section-note">{t.ledgerNote}</p></div><div id="prayer-ledger" className="summary-rail"><div className="summary-main"><span className="figure">{totals.completed}</span><span className="caption">{t.countedToday}</span></div><div className="summary-stat"><span className="figure">{totals.remaining}</span><span className="caption">{t.remaining}</span></div><div className="summary-stat"><span className="figure">{totals.percent}<span className="figure-unit">%</span></span><span className="caption">{t.monthTarget}</span></div></div><div className="prayer-ledger">{prayerMeta.map((prayer, index) => { const value = counts[prayer.key]; const target = targets[prayer.key]; /* The bar takes the ratio and the caption takes the percent: one number, two units, so the fill can be a transform instead of a width. */ const ratio = target > 0 ? Math.min(1, value / target) : 0; const progress = Math.round(ratio * 100); const name = t.prayerNames[prayer.key]; return <article className="prayer-row" key={prayer.key} style={{ "--i": index } as React.CSSProperties}><div className="prayer-name"><span className="arabic">{prayer.arabic}</span><div><h3>{name}</h3><span className="caption">{timeState.at(timeState.times[prayer.key]) ? `${timeState.at(timeState.times[prayer.key])} · ` : ""}{timeState.current === prayer.key ? `${timeState.label} · ` : ""}{target} {t.planned}</span></div></div><div className="prayer-progress"><div className="progress-track"><span style={{ "--fill": ratio } as React.CSSProperties} /></div><span className="caption">{progress}%</span></div><div className="counter-control"><button className="step-button ghost" onClick={() => addMissed(prayer.key)} aria-label={`${t.addMissed} ${name}`} title={`${t.addMissed} · ${name}`}><Minus size={15} strokeWidth={1.6} /><span className="step-plus">+</span></button><button className="step-button" onClick={() => changeCount(prayer.key, -1)} aria-label={`${t.remove} ${name}`}><span>−</span></button><span className={`row-figure ${pulseKey === prayer.key ? "is-pulsing" : ""}`}>{value}</span><button className="step-button filled" onClick={() => changeCount(prayer.key, 1)} aria-label={`${t.add} ${name}`}><Plus size={18} strokeWidth={1.6} /></button></div></article>; })}</div><div className="ledger-footer"><span className="caption" role="status" aria-live="polite">{notice ?? t.ready}</span><button className="text-button is-danger" onClick={resetToday}><RotateCcw size={14} /> {t.reset}</button></div></div>
       </section>
-      <section className="ledger-band view-band alt" id="overview">
+      <section className="ledger-band view-band" id="overview">
         <div className="container"><Overview counts={counts} targets={targets} totals={totals} t={t} /></div>
       </section>
-      <section className="ledger-band view-band" id="stats">
+      <section className="ledger-band view-band alt" id="stats">
         <div className="container"><Stats counts={counts} targets={targets} totals={totals} history={history} t={t} /></div>
       </section>
     </>
     }
     </div>
+    {/* Outside the workspace branching on purpose: what the app is and how it
+        works is the case a reader who has not signed in came to read, and it
+        does not stop being true once they have. */}
+    <Features t={t} />
     <HowItWorks t={t} />
+    <About t={t} />
     <Suggestions t={t} />
     {/* Not while the setup form is up. It is fixed to the bottom-right corner,
         which is exactly where that form puts its own Save button, so it sat over
@@ -380,11 +465,23 @@ export default function Home() {
         ledger to add a prayer to until the form has been answered. */}
     {user && !showSetup && <QuickAdd counts={counts} t={t} onCount={(key) => changeCount(key, 1)} onMissed={addMissed} />}
     <footer className="site-footer container">
-      <span>QazoTrack · {t.personal}</span>
+      {/* The wordmark reads the pill nav's on-ink colour, which only exists on
+          the pill. On the page's own ground it takes the page's ink instead —
+          the token, not a second value. */}
+      <a className="brand" href="#top" aria-label="QazoTrack home">
+        <span className="brand-spark" aria-hidden="true" />
+        <span className="brand-wordmark">QazoTrack</span>
+      </a>
+      <nav className="top-nav" aria-label="Footer navigation">
+        <button className="chip nav-link" onClick={() => scrollToId("features")}>{t.featuresLabel}</button>
+        <button className="chip nav-link" onClick={() => scrollToId("how")}>{t.howItWorks}</button>
+        <button className="chip nav-link" onClick={() => scrollToId("about")}>{t.aboutLabel}</button>
+      </nav>
+      <button className="btn btn-primary" onClick={openLedger}>{t.countPrayer} <ArrowRight size={16} /></button>
       <span className="site-credit">
         {/* The year the build was made, not a hardcoded literal that quietly
             goes stale — BUILD_YEAR is stamped in at build time. */}
-        {t.builtBy}{" "}
+        QazoTrack · {t.personal} · {t.builtBy}{" "}
         <a href="https://uno-web.appwrite.network/" target="_blank" rel="noopener noreferrer">
           <UnoMark />uno.web
         </a>{" "}
@@ -482,10 +579,14 @@ function SectionNav({ active, t, onGo, onAdjust }: {
     { key: "overview" as const, label: t.overview },
     { key: "stats" as const, label: t.stats },
   ];
+  // The mark under the index is one rule that slides, so the list has to say
+  // which of its three columns it belongs under. Clamped at 0 because a mark
+  // parked off the left edge would be worse than a mark on the wrong entry.
+  const activeIndex = Math.max(0, items.findIndex((item) => item.key === active));
   return (
     <nav className="section-nav" aria-label={t.today}>
       <div className="container section-nav-inner">
-        <ol className="section-index">
+        <ol className="section-index" data-active={activeIndex}>
           {items.map((item, index) => (
             <li key={item.key}>
               <button
@@ -681,6 +782,111 @@ function Suggestions({ t }: { t: Copy }) {
             {state === "sent" ? t.ideasThanks : state === "failed" ? t.ideasFailed : ""}
           </p>
         </form>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The standing count, above the headline.
+ *
+ * The figure is the reader's own total, and a plain 0 before there is an
+ * account. It is not seeded with an invented number: a page about counting
+ * honestly cannot open by counting something that never happened.
+ *
+ * It used to carry a "+1" badge that flew off it every ten seconds while the
+ * figure pulsed underneath. Nothing was being added — the strip was performing
+ * a count the reader had not made — so both are gone.
+ *
+ * The cycling names are decoration and are hidden from assistive tech. The
+ * figure and the words beside it are not — they are the same fact the ledger
+ * states, so they stay readable.
+ */
+function CounterStrip({ t, total }: { t: Copy; total: number }) {
+  return (
+    <div className="counter-row container">
+      <span className="figure">{total}</span>
+      <div>
+        <span className="caption">{t.countedSoFar}</span>
+        <div className="counter-cycle" aria-hidden="true">
+          {prayerMeta.map((prayer, index) => (
+            <span key={prayer.key} style={{ animationDelay: `${index * 2000}ms` }}>{t.prayerNames[prayer.key]}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Six cards saying what the app does.
+ *
+ * On the pale band rather than the white ground, so it does not run into the
+ * white step band directly under it — the design's rule is that sections
+ * alternate, and two white sections with no rule between them read as one.
+ */
+function Features({ t }: { t: Copy }) {
+  const cards = [
+    { title: t.feat1Title, body: t.feat1Body },
+    { title: t.feat2Title, body: t.feat2Body },
+    { title: t.feat3Title, body: t.feat3Body },
+    { title: t.feat4Title, body: t.feat4Body },
+    { title: t.feat5Title, body: t.feat5Body },
+  ];
+  return (
+    <section className="ledger-band view-band" id="features">
+      <div className="container">
+        <div className="section-intro">
+          <div>
+            <p className="label">{t.featuresLabel}</p>
+            <h2 className="h2">{t.featuresTitle}</h2>
+          </div>
+        </div>
+        <div className="feature-grid">
+          {cards.map((card, index) => (
+            <article className="feature-card" key={card.title}>
+              <div className="icon-tile" aria-hidden="true">
+                {Array.from({ length: 9 }, (_, cell) => (
+                  <span key={cell} className={FEATURE_DOTS[index].includes(cell) ? "on" : ""} />
+                ))}
+              </div>
+              <h3>{card.title}</h3>
+              <p>{card.body}</p>
+            </article>
+          ))}
+          {/* The three flags the switcher already carries, in the switcher's own
+              order, rather than a second hardcoded list that could drift. */}
+          <article className="feature-card">
+            <div className="icon-tile flags" aria-hidden="true">
+              {languages.map((item) => <span key={item.key}>{item.flag}</span>)}
+            </div>
+            <h3>{t.feat6Title}</h3>
+            <p>{t.feat6Body}</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * What the count is actually made of.
+ *
+ * The ink band, because this is the one section that explains rather than
+ * offers, and the change of ground is what says so. The figures in the
+ * paragraph come from the engine's own constants — see `aboutBodyFor`.
+ */
+function About({ t }: { t: Copy }) {
+  return (
+    <section className="how-band deep" id="about">
+      <div className="container">
+        <div className="section-intro">
+          <div>
+            <p className="label">{t.aboutLabel}</p>
+            <h2 className="h2">{t.aboutTitle}</h2>
+          </div>
+        </div>
+        <p className="prose">{aboutBodyFor(t)}</p>
       </div>
     </section>
   );
@@ -970,7 +1176,7 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
         <p className="caption"><CountUp value={totals.completed} /> <span className="meter-of">/ {totals.target.toLocaleString()}</span></p>
       </div>
       <div className="meter-track">
-        <span className="meter-fill" style={{ width: `${totals.percent}%` }} />
+        <span className="meter-fill" style={{ "--fill": totals.percent / 100 } as React.CSSProperties} />
       </div>
       <div className="meter-foot">
         <span className="caption">{totals.percent}% · {t.done}</span>
@@ -986,10 +1192,10 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
         <div className="stats-bars">{prayerMeta.map((prayer) => {
           const target = targets[prayer.key];
           const value = counts[prayer.key];
-          const pct = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
+          const ratio = target > 0 ? Math.min(1, value / target) : 0;
           return <div className="stats-bar-row" key={prayer.key}>
             <span className="caption stats-bar-name">{t.prayerNames[prayer.key]}</span>
-            <span className="stats-bar-track"><span className="stats-bar-fill" data-empty={value === 0} style={{ width: `${pct}%` }} /></span>
+            <span className="stats-bar-track"><span className="stats-bar-fill" data-empty={value === 0} style={{ "--fill": ratio } as React.CSSProperties} /></span>
             <span className="row-figure stats-bar-value">{value}<small> / {target}</small></span>
           </div>;
         })}</div>
@@ -1007,7 +1213,9 @@ function Stats({ counts, targets, totals, history, t }: { counts: Counts; target
                 // reachable without it from the caption below, so nothing is gated
                 // behind the pointer. The hit rect is the full column height so the
                 // target is never a two-pixel sliver.
-                return <g key={day.key} className={day.total > 0 ? "stats-col-group is-on" : "stats-col-group"}>
+                // `--i` is the day's place in the month, which is what staggers
+                // the reveal — the columns arrive in the order the days did.
+                return <g key={day.key} className={day.total > 0 ? "stats-col-group is-on" : "stats-col-group"} style={{ "--i": index } as React.CSSProperties}>
                   <title>{`${day.key} · ${day.total}`}</title>
                   <rect x={index * 10 + 1.5} y={80 - height} width={7} height={Math.max(day.total > 0 ? 2 : 0, height)} rx={0} className={day.total > 0 ? "stats-col is-on" : "stats-col"} />
                   <rect x={index * 10} y={0} width={10} height={80} fill="transparent" />
@@ -1211,4 +1419,4 @@ function ProgressOverTime({ history, t }: { history: History; t: Copy }) {
 }
 
 
-function Overview({ counts, targets, totals, t }: { counts: Counts; targets: Counts; totals: { completed: number; target: number; remaining: number; percent: number }; t: Copy }) { return <div className="overview"><div className="section-intro"><div><p className="label">{t.overviewLabel}</p><h2 className="h2">{t.overviewTitle}</h2></div><p className="caption section-note">{t.overviewNote}</p></div><div className="overview-grid"><div className="overview-hero"><span className="figure huge">{totals.completed}</span><p className="caption">{t.countedOf.replace("{n}", String(totals.target))}</p><div className="big-progress"><span style={{ width: `${totals.percent}%` }} /></div><p className="caption">{totals.remaining} {t.stillToGo} · {totals.percent}% {t.targetOf}</p></div><div className="overview-list">{prayerMeta.map((prayer) => <div className="overview-item" key={prayer.key}><div><span className="arabic">{prayer.arabic}</span><strong>{t.prayerNames[prayer.key]}</strong></div><span className="figure">{counts[prayer.key]} <small>/ {targets[prayer.key]}</small></span></div>)}</div></div></div>; }
+function Overview({ counts, targets, totals, t }: { counts: Counts; targets: Counts; totals: { completed: number; target: number; remaining: number; percent: number }; t: Copy }) { return <div className="overview"><div className="section-intro"><div><p className="label">{t.overviewLabel}</p><h2 className="h2">{t.overviewTitle}</h2></div><p className="caption section-note">{t.overviewNote}</p></div><div className="overview-grid"><div className="overview-hero"><span className="figure huge">{totals.completed}</span><p className="caption">{t.countedOf.replace("{n}", String(totals.target))}</p><div className="big-progress"><span style={{ "--fill": totals.percent / 100 } as React.CSSProperties} /></div><p className="caption">{totals.remaining} {t.stillToGo} · {totals.percent}% {t.targetOf}</p></div><div className="overview-list">{prayerMeta.map((prayer) => <div className="overview-item" key={prayer.key}><div><span className="arabic">{prayer.arabic}</span><strong>{t.prayerNames[prayer.key]}</strong></div><span className="figure">{counts[prayer.key]} <small>/ {targets[prayer.key]}</small></span></div>)}</div></div></div>; }

@@ -1,0 +1,182 @@
+/* Paste into client/src/pages/Landing.css (imported by Landing.tsx).
+   Self-contained: does not depend on the app's existing tokens in index.css,
+   per the "ship as its own visual moment" choice. */
+
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap");
+
+.landing {
+  --landing-accent: #2563eb;
+  --landing-ink: #0f172a;
+  --landing-body: #475569;
+  --landing-muted: #94a3b8;
+  --landing-muted-2: #64748b;
+  --landing-line: #334155;
+  --landing-rule: #e2e8f0;
+  --landing-band: #f5f9ff;
+  --landing-chip: #eff6ff;
+  --landing-step-num: #bfddff;
+  font-family: "Inter", sans-serif;
+  color: var(--landing-ink);
+  background: #fff;
+}
+
+.landing h1, .landing h2, .landing h3, .landing .landing-step-num {
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800;
+  margin: 0;
+}
+
+.landing a { text-decoration: none; color: inherit; }
+
+/* Nav */
+.landing-nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  background: var(--landing-ink);
+  border-radius: 999px;
+  padding: 10px 10px 10px 22px;
+  max-width: 860px;
+  margin: 20px auto 0;
+  box-sizing: border-box;
+}
+.landing-logo {
+  display: flex; align-items: center; gap: 9px;
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 19px;
+  color: #fff; margin-right: auto; white-space: nowrap;
+}
+.landing-spark {
+  width: 14px; height: 14px; background: #fff; flex-shrink: 0;
+  clip-path: polygon(50% 0%,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0% 50%,39% 39%);
+}
+.landing-spark-dark { background: var(--landing-ink); }
+.landing-nav-links { display: flex; gap: 26px; font-size: 14px; color: #cbd5e1; }
+.landing-nav-links a:hover { color: #fff; }
+.landing-nav-cta { background: #fff; color: var(--landing-ink); padding: 9px 20px; border-radius: 999px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+/* Counter row */
+.landing-counter-row {
+  display: flex; align-items: center; gap: 22px;
+  padding: 56px 24px 0; max-width: 1150px; margin: 0 auto; box-sizing: border-box;
+}
+.landing-counter { position: relative; display: inline-flex; }
+.landing-counter span:first-child {
+  font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 56px;
+  letter-spacing: -0.02em; animation: counterPop 10s ease-in-out infinite;
+}
+.landing-badge {
+  position: absolute; top: -4px; right: -32px; background: var(--landing-accent); color: #fff;
+  font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  animation: badgePop 10s ease-in-out infinite;
+}
+.landing-counter-label { display: flex; flex-direction: column; gap: 4px; }
+.landing-counter-label > span:first-child { font-size: 13px; color: var(--landing-muted); }
+.landing-cycle { position: relative; height: 20px; width: 110px; }
+.landing-cycle span {
+  position: absolute; left: 0; top: 0; font-size: 14px; font-weight: 600; color: var(--landing-accent);
+  opacity: 0; animation: labelCycle 10s ease-in-out infinite;
+}
+
+@keyframes counterPop { 0%, 100% { transform: scale(1); } 4% { transform: scale(1.1); } 8% { transform: scale(1); } }
+@keyframes badgePop {
+  0%, 100% { opacity: 0; transform: translateY(6px) scale(0.8); }
+  2% { opacity: 0; transform: translateY(6px) scale(0.8); }
+  5% { opacity: 1; transform: translateY(-8px) scale(1); }
+  9% { opacity: 1; transform: translateY(-8px) scale(1); }
+  12% { opacity: 0; transform: translateY(-16px) scale(0.8); }
+}
+@keyframes labelCycle { 0%, 100% { opacity: 0; } 2% { opacity: 0; } 6%, 14% { opacity: 1; } 18% { opacity: 0; } }
+@keyframes growBar { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes chartDraw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+@keyframes chartFade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Hero headline */
+.landing-hero {
+  display: flex; justify-content: space-between; gap: 48px; flex-wrap: wrap;
+  padding: 64px 24px 96px; max-width: 1150px; margin: 0 auto; box-sizing: border-box;
+}
+.landing-hero h1 { font-size: clamp(40px, 7vw, 90px); line-height: 1.02; letter-spacing: -0.02em; max-width: 680px; }
+.landing-hero-side { max-width: 320px; display: flex; flex-direction: column; gap: 20px; padding-top: 6px; }
+.landing-hero-side p { font-size: 16px; line-height: 1.6; color: var(--landing-body); margin: 0; }
+.landing-cta-dark { background: var(--landing-ink); color: #fff; padding: 14px 26px; border-radius: 999px; font-size: 15px; font-weight: 600; width: fit-content; display: inline-block; }
+
+.landing-section-inner { max-width: 1150px; margin: 0 auto; }
+.landing-eyebrow { font-size: 13px; font-weight: 700; color: var(--landing-accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+
+/* Features */
+.landing-features { background: var(--landing-band); padding: 96px 24px; }
+.landing-features h2, .landing-process h2, .landing-stats h2 { font-size: clamp(28px, 4vw, 44px); margin: 0 0 48px; max-width: 560px; line-height: 1.15; }
+.landing-feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+.landing-feature-card { background: #fff; border-radius: 16px; padding: 32px; display: flex; flex-direction: column; gap: 18px; border: 1px solid var(--landing-rule); }
+.landing-feature-card h3 { font-size: 20px; }
+.landing-feature-card p { font-size: 15px; color: var(--landing-body); line-height: 1.6; margin: 0; }
+.landing-icon { width: 40px; height: 40px; background: var(--landing-chip); border-radius: 10px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 3px; padding: 8px; box-sizing: border-box; }
+.landing-icon span.on { background: var(--landing-accent); border-radius: 1px; }
+.landing-flag-icon { width: 40px; height: 40px; background: var(--landing-chip); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 3px; font-size: 13px; }
+
+/* Process */
+.landing-process { padding: 96px 24px; }
+.landing-step-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.landing-step { padding-top: 24px; border-top: 2px solid var(--landing-rule); }
+.landing-step-num { font-size: 36px; color: var(--landing-step-num); margin-bottom: 16px; }
+.landing-step h3 { font-family: "Inter", sans-serif; font-weight: 700; font-size: 17px; margin: 0 0 8px; }
+.landing-step p { font-size: 14px; color: var(--landing-body); line-height: 1.6; margin: 0; }
+
+/* Stats */
+.landing-stats { background: var(--landing-band); padding: 96px 24px; }
+.landing-stat-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 24px; }
+.landing-stat-tile { background: #fff; border-radius: 16px; padding: 28px; border: 1px solid var(--landing-rule); display: flex; flex-direction: column; gap: 6px; }
+.landing-stat-tile span:first-child { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -0.02em; }
+.landing-stat-tile span:last-child { font-size: 14px; color: var(--landing-muted-2); }
+.landing-card { background: #fff; border-radius: 16px; padding: 32px; border: 1px solid var(--landing-rule); display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; }
+.landing-card-title { font-size: 14px; font-weight: 600; }
+.landing-card-caption { font-size: 13px; color: var(--landing-muted-2); }
+.landing-chart { width: 100%; height: 110px; overflow: visible; animation: chartFade 600ms ease-out both; }
+.landing-chart-line { stroke-dasharray: 100; animation: chartDraw 1.4s ease-out both; }
+.landing-bar-rows { display: flex; flex-direction: column; gap: 16px; }
+.landing-bar-row { display: grid; grid-template-columns: 80px 1fr 40px; align-items: center; gap: 14px; }
+.landing-bar-row span:first-child { font-size: 14px; color: var(--landing-line); }
+.landing-bar-row span:last-child { font-size: 13px; color: var(--landing-muted-2); text-align: right; }
+.landing-bar-track { height: 6px; background: var(--landing-rule); border-radius: 3px; overflow: hidden; }
+.landing-bar-fill { height: 100%; background: var(--landing-accent); border-radius: 3px; transform-origin: left; animation: growBar 900ms ease-out both; }
+
+/* QuickAdd spotlight */
+.landing-quickadd { background: var(--landing-ink); border-radius: 20px; padding: 40px; margin: 0 24px 96px; display: flex; align-items: center; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+.landing-quickadd-copy { max-width: 400px; }
+.landing-quickadd-copy h3 { color: #fff; font-size: 22px; margin: 0 0 10px; }
+.landing-quickadd-copy p { font-size: 15px; color: #94a3b8; line-height: 1.6; margin: 0; }
+.landing-quickadd-mock { background: #1e293b; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 260px; }
+.landing-quickadd-label { font-size: 12px; color: #94a3b8; padding-bottom: 4px; }
+.landing-quickadd-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.landing-quickadd-row span:first-child { font-size: 14px; color: #e2e8f0; }
+.landing-quickadd-count { font-size: 14px; color: #64748b; }
+.landing-quickadd-buttons { display: flex; gap: 8px; }
+.landing-quickadd-minus, .landing-quickadd-plus { width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.landing-quickadd-minus { border: 1px solid #334155; color: #94a3b8; }
+.landing-quickadd-plus { background: var(--landing-accent); color: #fff; }
+
+/* About */
+.landing-about { background: var(--landing-ink); padding: 96px 24px; color: #fff; }
+.landing-about-inner { max-width: 760px; margin: 0 auto; }
+.landing-about-inner h2 { font-size: clamp(28px, 4vw, 42px); line-height: 1.2; margin: 0 0 24px; }
+.landing-about-inner p { font-size: 17px; line-height: 1.7; color: #cbd5e1; margin: 0; }
+
+/* Footer */
+.landing-footer { padding: 48px 24px 40px; }
+.landing-footer-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; max-width: 1150px; margin: 0 auto; }
+.landing-footer .landing-nav-links { color: var(--landing-line); }
+.landing-footer .landing-nav-links a:hover { color: var(--landing-ink); }
+.landing-footer .landing-cta-dark { padding: 10px 22px; font-size: 13px; }
+.landing-footer-copy { border-top: 1px solid var(--landing-rule); margin: 32px auto 0; padding-top: 24px; max-width: 1150px; font-size: 13px; color: var(--landing-muted); }
+
+@media (max-width: 900px) {
+  .landing-feature-grid, .landing-step-grid, .landing-stat-tiles { grid-template-columns: 1fr; }
+  .landing-nav-links { display: none; }
+}
+
+/*
+  WIRING (in your router, e.g. client/src/App.tsx):
+  import Landing from "./pages/Landing";
+  ... add a <Route path="/" element={<Landing />} /> (or wherever routes are declared),
+  and move the existing home route to e.g. "/app" if you want Landing as the new entry point.
+*/

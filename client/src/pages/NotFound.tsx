@@ -1,49 +1,49 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle, Home } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useLocation } from "wouter";
 
+/**
+ * The same site, at an address that has nothing on it.
+ *
+ * It wears the page's own type and buttons rather than a component library's
+ * card: a reader who lands here has not left QazoTrack, and a panel in another
+ * design would tell them they had. Nothing here is decorative — a number, a
+ * sentence, and the one way back.
+ */
 export default function NotFound() {
   const [, setLocation] = useLocation();
+  /* This page is outside Home, so it cannot read the shell's theme state.
+     Without a day/night class it falls through to the :root day tokens and
+     hands a reader in night mode a full-white page. The stored override is
+     the same key Home writes. With none set this falls back to a plain clock
+     window rather than Home's solar calculation — that one needs coordinates
+     and a geolocation prompt, which is far too much to ask of a 404. */
+  const stored = typeof localStorage !== "undefined" ? localStorage.getItem("qaza-theme") : null;
+  const hour = new Date().getHours();
+  const isNight = stored ? stored === "night" : hour < 5 || hour >= 21;
+  // The tokens live on <html>, so the class alone would leave body white.
+  if (typeof document !== "undefined") document.documentElement.dataset.theme = isNight ? "dark" : "light";
 
   const handleGoHome = () => {
     setLocation("/");
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100">
-      <Card className="w-full max-w-lg mx-4 shadow-lg border-0 bg-white/80 backdrop-blur-sm">
-        <CardContent className="pt-8 pb-8 text-center">
-          <div className="flex justify-center mb-6">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-100 rounded-full animate-pulse" />
-              <AlertCircle className="relative h-16 w-16 text-red-500" />
-            </div>
-          </div>
-
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">404</h1>
-
-          <h2 className="text-xl font-semibold text-slate-700 mb-4">
-            Page Not Found
-          </h2>
-
-          <p className="text-slate-600 mb-8 leading-relaxed">
-            Sorry, the page you are looking for doesn't exist.
-            <br />
-            It may have been moved or deleted.
+    <main className={`site-shell ${isNight ? "night" : "day"}`} lang="en">
+      <div className="hero container">
+        <div className="hero-copy">
+          <p className="label">Error 404</p>
+          <h1 className="display">This page isn’t here.</h1>
+          <p className="prose">
+            The address you followed doesn’t match anything on QazoTrack. It may have been
+            moved, or the link may have been mistyped. Your record is untouched.
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={handleGoHome}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-            >
-              <Home className="w-4 h-4 mr-2" />
-              Go Home
-            </Button>
+          <div className="hero-actions">
+            <button className="btn btn-primary" onClick={handleGoHome}>
+              Back to the ledger <ArrowRight size={16} />
+            </button>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }
