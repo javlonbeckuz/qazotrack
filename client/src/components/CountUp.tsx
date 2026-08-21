@@ -17,6 +17,10 @@ const DURATION = 900;
 /** Ease-out-expo: nearly all the distance early, then a long settle. */
 const ease = (t: number) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t));
 
+/** The app's one separator. Duplicated rather than imported so this component
+    stays free of a page-level dependency; see fmt in pages/Home.tsx. */
+const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+
 export default function CountUp({ value, className, suffix = "" }: { value: number; className?: string; suffix?: string }) {
   const host = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState<number | null>(null);
@@ -57,5 +61,5 @@ export default function CountUp({ value, className, suffix = "" }: { value: numb
   // right width and a stalled loop still leaves the number readable.
   // The suffix gets its own element so a unit set beside a Playfair numeral can
   // be given the interface sans — see `.figure-unit`.
-  return <span ref={host} className={className}>{(shown ?? value).toLocaleString()}{suffix && <span className="figure-unit">{suffix}</span>}</span>;
+  return <span ref={host} className={className}>{fmt(shown ?? value)}{suffix && <span className="figure-unit">{suffix}</span>}</span>;
 }

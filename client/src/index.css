@@ -11,7 +11,7 @@
  * cannot read tokens that flip. Those five on-ink values are aliased once,
  * where the exception is made, rather than re-typed per rule.
  */
-@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500&family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -161,7 +161,7 @@ body {
 }
 
 h1, h2, h3, .h2, .display, .figure, .row-figure, .how-ordinal, .section-num, .brand-wordmark {
-  font-family:"Bricolage Grotesque",sans-serif; font-weight:800; margin:0;
+  font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; margin:0;
 }
 
 button { font:inherit; color:inherit; }
@@ -444,7 +444,7 @@ input:focus-visible, textarea:focus-visible { outline:none; }
 
 .hero {
   position:relative; isolation:isolate;
-  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center;
+  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-start;
   gap:48px; padding-block:64px 96px;
 }
 .hero-copy { position:relative; z-index:1; flex:1 1 520px; max-width:680px; min-width:0; animation:rise var(--dur-slow) var(--ease-out) both; }
@@ -525,7 +525,7 @@ input:focus-visible, textarea:focus-visible { outline:none; }
   display:flex; flex-wrap:wrap; align-items:flex-end; gap:24px 40px; margin-top:8px;
 }
 .sun-status { display:flex; flex-direction:column; gap:5px; color:var(--text-muted); }
-.sun-status strong { font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:22px; line-height:1.1; letter-spacing:-.02em; color:var(--text-ink); }
+.sun-status strong { font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; font-size:22px; line-height:1.1; letter-spacing:-.02em; color:var(--text-ink); }
 .sun-status span:last-child { font-size:12px; }
 /* A label, not a figure: it stays in the interface face. */
 .sun-kicker { font-family:inherit; font-weight:500; font-size:12px; letter-spacing:.02em; text-transform:none; color:var(--accent); }
@@ -617,9 +617,6 @@ input:focus-visible, textarea:focus-visible { outline:none; }
 }
 .icon-tile span { border-radius:1px; }
 .icon-tile span.on, .icon-tile span.is-on { background:var(--accent); }
-/* The languages card carries three flags rather than the dot grid, so the
-   tile drops to a centred row — the reference's own `.landing-flag-icon`. */
-.icon-tile.flags { display:flex; align-items:center; justify-content:center; gap:3px; padding:0; font-size:13px; }
 
 /* ==========================================================================
    LEDGER
@@ -640,6 +637,16 @@ input:focus-visible, textarea:focus-visible { outline:none; }
 
 /* One rounded card, rows ruled inside it. `overflow:hidden` is what clips the
    first and last rows into the card's corners. */
+/* The logged-out preview. Its controls are spans wearing the button classes so
+   the ledger looks exactly like itself, which means they must be told they are
+   not controls: no pointer, no hit target, and the whole block sits back a
+   little so it reads as an illustration rather than something that stopped
+   working. */
+.prayer-ledger.is-preview { pointer-events:none; }
+.prayer-ledger.is-preview .step-button { cursor:default; }
+.prayer-ledger.is-preview .step-button.ghost { border-style:dashed; }
+#preview .summary-rail, #preview .prayer-ledger { opacity:.92; }
+
 .prayer-ledger {
   background:var(--surface-card); border:1px solid var(--rule);
   border-radius:var(--radius); overflow:hidden;
@@ -858,7 +865,7 @@ input:focus-visible, textarea:focus-visible { outline:none; }
   position:absolute; transform:translate(-100%,-50%); margin-left:-14px;
   padding:5px 10px; border:1px solid var(--rule); border-radius:var(--radius-sm);
   background:var(--surface-card); color:var(--text-ink);
-  font-family:"Bricolage Grotesque",sans-serif; font-weight:800; font-size:14px; line-height:1;
+  font-family:"Bricolage Grotesque",Inter,sans-serif; font-weight:800; font-size:14px; line-height:1;
   font-variant-numeric:lining-nums tabular-nums; white-space:nowrap; pointer-events:none;
 }
 
@@ -1000,12 +1007,16 @@ input:focus-visible, textarea:focus-visible { outline:none; }
 }
 .how-steps li {
   padding-top:24px; border-top:2px solid var(--rule);
-  /* Revealed on scroll, left to right, because the steps must be read in order. */
-  opacity:0; transform:translateY(14px);
-  transition:opacity var(--dur-mid) var(--ease-out), transform var(--dur-mid) var(--ease-out);
+  /* Never blank. This used to start at opacity 0 and wait for an observer with a
+     -12% root margin, so the four steps were an empty band for most of the time
+     they were on screen — the reader scrolled past a hole. The copy is legible
+     from the first frame now; only a small settle is left, and it is transform
+     only, so nothing can be unreadable while it plays. */
+  transform:translateY(8px);
+  transition:transform var(--dur) var(--ease-out);
   transition-delay:calc(var(--step) * var(--stagger));
 }
-.how-band.is-shown .how-steps li { opacity:1; transform:none; }
+.how-band.is-shown .how-steps li { transform:none; }
 .how-ordinal { display:block; font-size:36px; line-height:1; letter-spacing:-.02em; color:var(--accent); margin-bottom:16px; font-variant-numeric:lining-nums tabular-nums; }
 /* The reference sets step titles in Inter, not the display face — the ordinal
    above already carries the grotesque, and two of them stacked shouts. */
