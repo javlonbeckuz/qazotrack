@@ -86,7 +86,13 @@
 [data-theme="dark"] {
   --surface-base:#0f172a;
   --surface-band:#111c33;
-  --surface-card:#1e293b;
+  /* Same as the ground on purpose. A lighter card fill is the usual dark-UI
+     way to show elevation, but it is a SECOND separation device, and this
+     design uses one: the stroke. With the fill flat, --rule below is the only
+     thing drawing a panel, which is why it had to get stronger. Still opaque —
+     the profile menu and the quick sheet float over content and have to
+     occlude it, which is not the same thing as separating from it. */
+  --surface-card:#0f172a;
   --surface-chip:#243449;
   --surface-deep:#0b1220;
   --surface-deep-2:#1e293b;
@@ -102,8 +108,13 @@
   --accent-contrast:#0f172a;
   --accent-soft:#1e3a5f;
 
-  --rule:#243449;
-  --rule-strong:#334155;
+  /* #243449 sat at 1.4:1 on the ground — a hairline you had to look for, which
+     is why the card fill ended up doing the separating. At 2.4:1 the stroke can
+     carry a panel on its own. Below WCAG's 3:1 for a UI boundary, deliberately:
+     the card edge is not the only cue for anything, and a crisper line on a
+     ledger of missed prayers reads as a grid. */
+  --rule:#475569;
+  --rule-strong:#64748b;
   --rule-deep:#334155;
 
   --danger:#f87171;
